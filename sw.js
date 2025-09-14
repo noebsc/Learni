@@ -1,4 +1,4 @@
-// sw.js - Service Worker pour Learni STI2D
+// sw.js - Service Worker pour Learni
 const CACHE_NAME = 'learni-sti2d-v2.0.0';
 const urlsToCache = [
   './',
