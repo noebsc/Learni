@@ -1,27 +1,13 @@
-/* ========== app-ameliore.js - Learni STI2D - Version Complète ========== */
+/* ========== app-ameliore.js - Learni STI2D COMPLET CORRIGÉ ========== */
 
 // Import Firebase
 import { 
-    auth, 
-    db, 
-    analytics, 
-    signInWithEmailAndPassword, 
-    createUserWithEmailAndPassword, 
-    signOut, 
-    onAuthStateChanged, 
-    doc, 
-    setDoc, 
-    getDoc, 
-    updateDoc, 
-    collection, 
-    getDocs, 
-    onSnapshot, 
-    logEvent, 
-    addDoc, 
-    query, 
-    orderBy, 
-    limit, 
-    where 
+    auth, db, analytics, 
+    signInWithEmailAndPassword, createUserWithEmailAndPassword, 
+    signOut, onAuthStateChanged,
+    doc, setDoc, getDoc, updateDoc, 
+    collection, getDocs, onSnapshot, logEvent, addDoc,
+    query, orderBy, limit, where 
 } from './firebase-ameliore.js';
 
 // ≡ GLOBALS
@@ -41,8 +27,8 @@ let currentQuizIndex = 0;
 let userAnswers = [];
 let quizStartTime = null;
 
-// Configuration IA Gemini
-const GEMINI_API_KEY = "AIzaSyDAQR7pK1DHSNdwQp_5Y4OVNsgXGl5dpSY"; // À remplacer par votre clé
+// 🔧 Configuration IA Gemini - REMPLACEZ par votre clé
+const GEMINI_API_KEY = "AIzaSyDAQR7pK1DHSNdwQp_5Y4OVNsgXGl5dpSY"; // CHANGEZ CECI
 const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent";
 
 // Sujets STI2D 2025 complets
@@ -109,16 +95,16 @@ const STI2D_SUBJECTS = {
 
 function showSection(sectionId) {
     console.log('🔄 Affichage de la section:', sectionId);
-    
+
     if (sectionId === 'authSection') {
         document.getElementById('appContent').classList.add('hidden');
         document.getElementById('authSection').classList.remove('hidden');
         return;
     }
-    
+
     document.getElementById('appContent').classList.remove('hidden');
     document.getElementById('authSection').classList.add('hidden');
-    
+
     // Masquer toutes les sections
     const sections = ['dashboard', 'quiz-select', 'fiches', 'quiz-ai', 'history'];
     sections.forEach(id => {
@@ -127,13 +113,13 @@ function showSection(sectionId) {
             section.classList.add('hidden');
         }
     });
-    
+
     // Afficher la section demandée
     const targetSection = document.getElementById(sectionId);
     if (targetSection) {
         targetSection.classList.remove('hidden');
         currentSection = sectionId;
-        
+
         // Mise à jour des boutons de navigation
         document.querySelectorAll('.nav-btn').forEach(btn => {
             btn.classList.remove('active');
@@ -141,7 +127,7 @@ function showSection(sectionId) {
                 btn.classList.add('active');
             }
         });
-        
+
         // Actions spécifiques par section
         switch(sectionId) {
             case 'dashboard':
@@ -185,7 +171,7 @@ function toast(msg, type = 'info', timeout = 4000) {
         info: 'ℹ️',
         warning: '⚠️'
     };
-    
+
     const toastEl = document.createElement('div');
     toastEl.className = `toast ${type}`;
     toastEl.innerHTML = `
@@ -193,7 +179,7 @@ function toast(msg, type = 'info', timeout = 4000) {
         <span class="toast-message">${msg}</span>
         <button class="toast-close">×</button>
     `;
-    
+
     // Container pour les toasts
     let container = document.querySelector('.toast-container');
     if (!container) {
@@ -203,45 +189,48 @@ function toast(msg, type = 'info', timeout = 4000) {
     }
     
     container.appendChild(toastEl);
-    
+
     // Animation d'entrée
     setTimeout(() => toastEl.style.transform = 'translateX(0)', 10);
-    
+
     // Fermeture automatique et manuelle
     const closeToast = () => {
         toastEl.style.transform = 'translateX(400px)';
         setTimeout(() => toastEl.remove(), 300);
     };
-    
+
     toastEl.querySelector('.toast-close').onclick = closeToast;
     setTimeout(closeToast, timeout);
 }
 
+// 🔧 CORRECTION 1: Chargement des quiz avec bon chemin
 async function loadQuizzes() {
     try {
         const cached = localStorage.getItem('quizzes_cache');
         const cacheTime = localStorage.getItem('quizzes_cache_time');
-        
+
         // Utiliser le cache si moins de 1 heure
         if (cached && cacheTime && (Date.now() - parseInt(cacheTime)) < 3600000) {
             quizzes = JSON.parse(cached);
             console.log('✅ Quizzes chargés depuis le cache');
             return;
         }
-        
+
+        // 🔧 CHEMIN CORRIGÉ: ./sti2d.json au lieu de /Learni/sti2d.json
+        console.log('🔄 Chargement des quiz depuis ./sti2d.json');
         const resp = await fetch('./sti2d.json');
-        if (!resp.ok) throw new Error('Erreur chargement quizzes');
-        
+        if (!resp.ok) throw new Error(`HTTP ${resp.status}: ${resp.statusText}`);
+
         quizzes = await resp.json();
-        
+        console.log('✅ Quiz chargés:', Object.keys(quizzes).length, 'matières');
+
         // Mise en cache
         localStorage.setItem('quizzes_cache', JSON.stringify(quizzes));
         localStorage.setItem('quizzes_cache_time', Date.now().toString());
         
-        console.log('✅ Quizzes chargés depuis le serveur');
     } catch (error) {
         console.error('❌ Erreur chargement quizzes:', error);
-        toast('Erreur lors du chargement des quiz', 'error');
+        toast('Erreur lors du chargement des quiz: ' + error.message, 'error');
         
         // Quizzes de démonstration en cas d'erreur
         quizzes = {
@@ -260,6 +249,7 @@ async function loadQuizzes() {
                 ]
             }]
         };
+        console.log('📚 Quiz de fallback chargés');
     }
 }
 
@@ -267,11 +257,11 @@ async function loadQuizzes() {
 
 async function fetchAndSyncUserData(user) {
     if (!user) return;
-    
+
     try {
         console.log('📊 Chargement des données utilisateur...');
         currentUser = user;
-        
+
         const userDoc = await getDoc(doc(db, 'users', user.uid));
         if (userDoc.exists()) {
             userData = userDoc.data();
@@ -289,12 +279,12 @@ async function fetchAndSyncUserData(user) {
             };
             await setDoc(doc(db, 'users', user.uid), userData);
         }
-        
+
         await loadUserProgress();
         updateDashboard();
         updateUserInfo();
-        
         console.log('✅ Synchronisation terminée');
+
     } catch (error) {
         console.error('❌ Erreur sync données utilisateur:', error);
         userData = { email: user.email };
@@ -305,20 +295,19 @@ async function fetchAndSyncUserData(user) {
 
 async function loadUserProgress() {
     if (!currentUser) return;
-    
+
     try {
         const historyQuery = query(
             collection(db, 'users', currentUser.uid, 'quizHistory'),
             orderBy('completedAt', 'desc'),
             limit(50)
         );
-        
         const historySnapshot = await getDocs(historyQuery);
         quizHistory = historySnapshot.docs.map(doc => ({
             id: doc.id,
             ...doc.data()
         }));
-        
+
         calculateUserStats();
     } catch (error) {
         console.error('❌ Erreur chargement progression:', error);
@@ -338,11 +327,11 @@ function calculateUserStats() {
         };
         return;
     }
-    
+
     const scores = quizHistory.map(q => q.score || 0);
     const totalCorrect = quizHistory.reduce((sum, q) => sum + (q.correctAnswers || 0), 0);
     const bestScore = Math.max(...scores);
-    
+
     userProgress = {
         totalQuizzes: quizHistory.length,
         averageScore: Math.round(scores.reduce((a, b) => a + b, 0) / scores.length),
@@ -372,12 +361,12 @@ function updateDashboard() {
         currentStreak: document.getElementById('stat-streak'),
         totalCorrect: document.getElementById('stat-correct')
     };
-    
+
     if (statsElements.totalQuizzes) statsElements.totalQuizzes.textContent = userProgress.totalQuizzes;
     if (statsElements.averageScore) statsElements.averageScore.textContent = userProgress.averageScore + '%';
     if (statsElements.currentStreak) statsElements.currentStreak.textContent = userProgress.currentStreak;
     if (statsElements.totalCorrect) statsElements.totalCorrect.textContent = userProgress.totalCorrect;
-    
+
     // Activité récente
     updateRecentActivity();
 }
@@ -387,7 +376,7 @@ function updateUserInfo() {
     const specialtyEl = document.getElementById('userSpecialty');
     const lv1El = document.getElementById('userLV1');
     const lv2El = document.getElementById('userLV2');
-    
+
     if (emailEl) emailEl.textContent = userData.email || 'utilisateur@example.com';
     if (specialtyEl) specialtyEl.textContent = userData.speciality || 'Spécialité';
     if (lv1El) lv1El.textContent = userData.lv1 || 'LV1';
@@ -397,19 +386,20 @@ function updateUserInfo() {
 function updateRecentActivity() {
     const container = document.getElementById('recent-activity-list');
     if (!container) return;
-    
+
     if (quizHistory.length === 0) {
         container.innerHTML = '<p class="no-data">Aucun quiz complété pour le moment</p>';
         return;
     }
-    
+
     const recentQuizzes = quizHistory.slice(0, 5);
     let html = '';
-    
+
     recentQuizzes.forEach(quiz => {
         const date = new Date(quiz.completedAt).toLocaleDateString('fr-FR');
-        const scoreClass = quiz.score >= 80 ? 'excellent' : quiz.score >= 60 ? 'good' : 'average';
-        
+        const scoreClass = quiz.score >= 80 ? 'excellent' : 
+                          quiz.score >= 60 ? 'good' : 'average';
+
         html += `
             <div class="activity-item ${scoreClass}">
                 <div class="activity-info">
@@ -420,71 +410,87 @@ function updateRecentActivity() {
             </div>
         `;
     });
-    
+
     container.innerHTML = html;
 }
+
+// ≡ --- QUIZ SELECT ---
 
 function renderQuizSelect() {
     const container = document.getElementById('quiz-select-container');
     if (!container || !quizzes) return;
-    
+
     let html = '<div class="quiz-categories">';
-    
-    // Tronc commun
+
+    // Tronc Commun
     html += '<div class="category"><h3>📚 Tronc Commun</h3><div class="subjects-grid">';
-    
+
     Object.entries(STI2D_SUBJECTS["Tronc Commun"]).forEach(([subject, info]) => {
-        const available = quizzes[subject] && quizzes[subject][0]?.questions?.length > 0;
-        const questionCount = available ? quizzes[subject][0].questions.length : 0;
-        
+        const available = quizzes[subject] && quizzes[subject].length > 0;
+        const questionCount = available ? quizzes[subject][0].questions?.length || 0 : 'N/A';
+        const isUserSubject = subject === lv1 || subject === lv2;
+
         html += `
-            <div class="subject-card ${available ? '' : 'disabled'}" ${available ? `onclick="startQuiz('${subject}')"` : ''}>
+            <div class="subject-card ${!available ? 'unavailable' : ''} ${isUserSubject ? 'user-specialty' : ''}" 
+                 data-subject="${subject}" ${!available ? 'title="Quiz non disponible"' : ''}>
+                ${isUserSubject ? '<span class="user-badge">Votre matière</span>' : ''}
                 <div class="subject-icon">${getSubjectIcon(subject)}</div>
                 <h4>${subject}</h4>
-                <p class="question-count">${questionCount} questions</p>
-                <p class="subject-themes">${info.themes.slice(0, 3).join(', ')}...</p>
-                <p class="subject-description">${info.description}</p>
-                ${!available ? '<div class="coming-soon">Bientôt disponible</div>' : ''}
+                <div class="question-count">${questionCount} questions</div>
+                <div class="subject-themes">${info.themes.slice(0, 3).join(', ')}...</div>
+                <div class="subject-description">${info.description}</div>
+                ${!available ? '<div class="unavailable-badge">Bientôt disponible</div>' : ''}
             </div>
         `;
     });
-    
+
     html += '</div></div>';
-    
+
     // Spécialités
-    html += '<div class="category"><h3>🔧 Spécialités</h3><div class="subjects-grid">';
-    
+    html += '<div class="category"><h3>🔬 Spécialités STI2D</h3><div class="subjects-grid">';
+
     Object.entries(STI2D_SUBJECTS["Spécialités"]).forEach(([subject, info]) => {
-        const available = quizzes[subject] && quizzes[subject][0]?.questions?.length > 0;
-        const questionCount = available ? quizzes[subject][0].questions.length : 0;
-        const isUserSpecialty = subject === userData.speciality || subject === '2I2D';
-        
+        const available = quizzes[subject] && quizzes[subject].length > 0;
+        const questionCount = available ? quizzes[subject][0].questions?.length || 0 : 'N/A';
+        const isUserSpecialty = subject === speciality;
+
         html += `
-            <div class="subject-card ${available ? '' : 'disabled'} ${isUserSpecialty ? 'user-specialty' : ''}" ${available ? `onclick="startQuiz('${subject}')"` : ''}>
+            <div class="subject-card ${!available ? 'unavailable' : ''} ${isUserSpecialty ? 'user-specialty' : ''}" 
+                 data-subject="${subject}" ${!available ? 'title="Quiz non disponible"' : ''}>
+                ${isUserSpecialty ? '<span class="user-badge">Votre spécialité</span>' : ''}
                 <div class="subject-icon">${getSubjectIcon(subject)}</div>
                 <h4>${subject}</h4>
-                <p class="question-count">${questionCount} questions</p>
-                <p class="subject-themes">${info.themes.slice(0, 3).join(', ')}...</p>
-                <p class="subject-description">${info.description}</p>
-                ${isUserSpecialty ? '<div class="user-badge">Votre spécialité</div>' : ''}
-                ${!available ? '<div class="coming-soon">Bientôt disponible</div>' : ''}
+                <div class="question-count">${questionCount} questions</div>
+                <div class="subject-themes">${info.themes.slice(0, 3).join(', ')}...</div>
+                <div class="subject-description">${info.description}</div>
+                ${!available ? '<div class="unavailable-badge">Bientôt disponible</div>' : ''}
             </div>
         `;
     });
-    
+
     html += '</div></div></div>';
-    
     container.innerHTML = html;
+
+    // Event listeners
+    container.addEventListener('click', (e) => {
+        const subjectCard = e.target.closest('.subject-card');
+        if (subjectCard && !subjectCard.classList.contains('unavailable')) {
+            const subject = subjectCard.getAttribute('data-subject');
+            if (subject && quizzes[subject] && quizzes[subject].length > 0) {
+                startQuiz(subject, quizzes[subject][0]);
+            }
+        }
+    });
 }
 
 function getSubjectIcon(subject) {
     const icons = {
-        'Français': '📝',
-        'Philosophie': '🧠',
+        'Français': '📖',
+        'Philosophie': '🤔',
         'Histoire-Géographie': '🌍',
         'Mathématiques': '📐',
         'Physique-Chimie': '⚗️',
-        'EMC': '🏛️',
+        'EMC': '⚖️',
         'EPS': '🏃',
         'Anglais': '🇬🇧',
         '2I2D': '🔧',
@@ -496,67 +502,325 @@ function getSubjectIcon(subject) {
     return icons[subject] || '📚';
 }
 
-// ≡ --- SYSTÈME DE QUIZ ---
+// ≡ --- GÉNÉRATION QUIZ IA (🔧 CORRECTION 2) ---
 
-function startQuiz(subject) {
-    if (!quizzes[subject] || !quizzes[subject][0]?.questions) {
-        toast('Quiz non disponible pour cette matière', 'warning');
+function initAIQuiz() {
+    // Initialiser les éléments du formulaire IA
+    const difficultySlider = document.getElementById('aiDifficulty');
+    const difficultyDisplay = document.getElementById('difficultyDisplay');
+    
+    if (difficultySlider && difficultyDisplay) {
+        difficultySlider.addEventListener('input', (e) => {
+            const levels = ['Très facile', 'Facile', 'Moyen', 'Difficile', 'Expert'];
+            const level = parseInt(e.target.value) - 1;
+            difficultyDisplay.textContent = `Difficulté: ${levels[level]}`;
+        });
+    }
+
+    const generateBtn = document.getElementById('generateQuizBtn');
+    if (generateBtn) {
+        generateBtn.addEventListener('click', generateAIQuiz);
+    }
+}
+
+// 🔧 CORRECTION 2: Fonction d'appel API Gemini corrigée
+async function callGeminiAPI(subject, theme, difficulty, questionCount) {
+    try {
+        if (!GEMINI_API_KEY || GEMINI_API_KEY === "AIzaSyDAQR7pK1DHSNdwQp_5Y4OVNsgXGl5dpSY") {
+            throw new Error('⚠️ Clé API Gemini non configurée - Veuillez la configurer dans le fichier app-ameliore.js ligne 28');
+        }
+
+        console.log(`🤖 Génération quiz IA: ${subject}, thème: "${theme}", difficulté ${difficulty}/5`);
+
+        const prompt = `Tu es un professeur expert du programme français BAC STI2D 2025.
+        
+CONSIGNE STRICTE: Génère exactement ${questionCount} questions de ${subject} ${theme ? `sur le thème "${theme}"` : ''} 
+pour des élèves de Terminale STI2D, niveau de difficulté ${difficulty}/5.
+
+FORMAT DE RÉPONSE OBLIGATOIRE - UNIQUEMENT du JSON valide, sans texte avant ou après:
+{
+    "questions": [
+        {
+            "type": "qcm",
+            "text": "Question précise et claire?",
+            "choices": ["Réponse A", "Réponse B", "Réponse C", "Réponse D"],
+            "solution": 0,
+            "explication": "Explication pédagogique détaillée de la bonne réponse."
+        },
+        {
+            "type": "tf",
+            "text": "Affirmation précise à vérifier.",
+            "solution": true,
+            "explication": "Justification complète de la réponse vraie ou fausse."
+        }
+    ]
+}
+
+RÈGLES STRICTES:
+- Respecter exactement le programme BAC STI2D 2025 français officiel
+- Questions variées (70% QCM avec 4 choix, 30% Vrai/Faux)  
+- Solution = index numérique pour QCM (0,1,2,3), boolean pour TF
+- Explications pédagogiques détaillées minimum 25 mots chacune
+- Français correct et niveau terminale approprié
+- JSON valide UNIQUEMENT (pas de markdown, pas de commentaire, pas de texte explicatif)
+- Exactement ${questionCount} questions, ni plus ni moins`;
+
+        const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                contents: [{
+                    parts: [{
+                        text: prompt
+                    }]
+                }],
+                generationConfig: {
+                    temperature: 0.7,
+                    topK: 40,
+                    topP: 0.95,
+                    maxOutputTokens: 2048,
+                }
+            })
+        });
+
+        if (!response.ok) {
+            const errorData = await response.text();
+            console.error('❌ Erreur API Gemini:', response.status, errorData);
+            throw new Error(`Erreur API Gemini: ${response.status} - ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        let aiResponse = data.candidates?.[0]?.content?.parts?.[0]?.text;
+
+        if (!aiResponse) {
+            throw new Error('Réponse vide de l\'IA Gemini');
+        }
+
+        console.log('🤖 Réponse brute IA:', aiResponse);
+
+        // 🔧 NETTOYAGE ROBUSTE CORRIGÉ DE LA RÉPONSE IA
+        aiResponse = aiResponse.trim();
+        
+        // Supprimer tous les types de backticks markdown
+        aiResponse = aiResponse.replace(/^```json\s*/i, '');  // Début ```json  
+        aiResponse = aiResponse.replace(/^```\s*/, '');       // Début ```
+        aiResponse = aiResponse.replace(/\s*```$/g, '');      // Fin ```
+        
+        // Supprimer texte avant le premier { et après le dernier }
+        const firstBrace = aiResponse.indexOf('{');
+        const lastBrace = aiResponse.lastIndexOf('}');
+        
+        if (firstBrace === -1 || lastBrace === -1) {
+            console.error('💾 Réponse problématique:', aiResponse);
+            throw new Error('Réponse IA mal formatée: pas de JSON détecté');
+        }
+        
+        aiResponse = aiResponse.substring(firstBrace, lastBrace + 1);
+        
+        console.log('🧹 Réponse nettoyée:', aiResponse);
+
+        // Parsing et validation JSON stricte
+        let quizData;
+        try {
+            quizData = JSON.parse(aiResponse);
+        } catch (parseError) {
+            console.error('❌ Erreur parsing JSON:', parseError);
+            console.error('💾 JSON problématique:', aiResponse);
+            throw new Error('JSON invalide généré par l\'IA - Format incorrect');
+        }
+        
+        // Validation structure complète
+        if (!quizData || typeof quizData !== 'object') {
+            throw new Error('Réponse IA invalide: pas un objet JSON');
+        }
+        
+        if (!quizData.questions || !Array.isArray(quizData.questions)) {
+            throw new Error('Structure JSON invalide: propriété questions manquante ou incorrecte');
+        }
+
+        if (quizData.questions.length === 0) {
+            throw new Error('Aucune question générée par l\'IA');
+        }
+
+        if (quizData.questions.length !== questionCount) {
+            console.warn(`⚠️ Nombre de questions généré (${quizData.questions.length}) différent de demandé (${questionCount})`);
+        }
+
+        // Validation détaillée de chaque question
+        for (let i = 0; i < quizData.questions.length; i++) {
+            const question = quizData.questions[i];
+            
+            if (!question || typeof question !== 'object') {
+                throw new Error(`Question ${i+1} invalide: pas un objet`);
+            }
+            
+            if (!question.type || !question.text || !question.explication) {
+                throw new Error(`Question ${i+1} mal formatée: champs obligatoires manquants (type, text, explication)`);
+            }
+            
+            if (question.type === 'qcm') {
+                if (!question.choices || !Array.isArray(question.choices) || 
+                    question.choices.length < 2 || typeof question.solution !== 'number') {
+                    throw new Error(`QCM ${i+1} mal formaté: choices invalides ou solution manquante`);
+                }
+                if (question.solution < 0 || question.solution >= question.choices.length) {
+                    throw new Error(`Solution QCM ${i+1} invalide: index ${question.solution} hors limites`);
+                }
+            } else if (question.type === 'tf') {
+                if (typeof question.solution !== 'boolean') {
+                    throw new Error(`Solution Vrai/Faux ${i+1} invalide: doit être boolean, reçu ${typeof question.solution}`);
+                }
+            } else {
+                throw new Error(`Type de question ${i+1} invalide: "${question.type}" (doit être "qcm" ou "tf")`);
+            }
+
+            if (typeof question.explication !== 'string' || question.explication.length < 10) {
+                throw new Error(`Explication question ${i+1} trop courte ou invalide`);
+            }
+        }
+
+        console.log(`✅ Quiz IA validé avec succès: ${quizData.questions.length} questions générées`);
+        return quizData;
+
+    } catch (error) {
+        console.error('❌ Erreur complète génération quiz IA:', error.message);
+        throw error; // Remonter l'erreur avec son message original
+    }
+}
+
+async function generateAIQuiz() {
+    const subjectSelect = document.getElementById('aiSubject');
+    const themeInput = document.getElementById('aiTheme');
+    const difficultySlider = document.getElementById('aiDifficulty');
+    const questionCountSelect = document.getElementById('aiQuestionCount');
+
+    if (!subjectSelect || !difficultySlider || !questionCountSelect) {
+        toast('Erreur: éléments du formulaire manquants', 'error');
         return;
     }
-    
-    currentQuizData = {
-        subject: subject,
-        questions: [...quizzes[subject][0].questions], // Copie pour éviter la modification
-        title: quizzes[subject][0].titre || `Quiz ${subject}`
-    };
-    
-    // Mélanger les questions
-    currentQuizData.questions = shuffleArray(currentQuizData.questions);
-    
+
+    const subject = subjectSelect.value;
+    const theme = themeInput ? themeInput.value.trim() : '';
+    const difficulty = parseInt(difficultySlider.value);
+    const questionCount = parseInt(questionCountSelect.value);
+
+    if (!subject) {
+        toast('Veuillez choisir une matière', 'warning');
+        return;
+    }
+
+    const loadingContainer = document.getElementById('aiLoadingContainer');
+    const quizDisplay = document.getElementById('aiQuizDisplay');
+    const generateBtn = document.getElementById('generateQuizBtn');
+
+    try {
+        // Afficher le loading
+        if (loadingContainer) loadingContainer.classList.remove('hidden');
+        if (quizDisplay) quizDisplay.classList.add('hidden');
+        if (generateBtn) {
+            generateBtn.disabled = true;
+            generateBtn.textContent = '🔄 Génération en cours...';
+        }
+
+        // Générer le quiz avec IA
+        const quizData = await callGeminiAPI(subject, theme, difficulty, questionCount);
+
+        // Créer l'objet quiz complet
+        const aiQuiz = {
+            titre: `Quiz IA - ${subject}${theme ? ` (${theme})` : ''}`,
+            niveau: 'Terminale STI2D',
+            themes: theme ? [theme] : [],
+            keywords: ['IA', 'générée', subject],
+            memo: `Quiz généré par IA Gemini - Difficulté ${difficulty}/5 - ${quizData.questions.length} questions`,
+            questions: quizData.questions,
+            isAI: true
+        };
+
+        // Masquer le loading et démarrer le quiz
+        if (loadingContainer) loadingContainer.classList.add('hidden');
+        
+        // Démarrer le quiz
+        startQuiz(`${subject} (IA)`, aiQuiz);
+        
+        toast(`Quiz IA généré avec succès ! ${quizData.questions.length} questions créées.`, 'success');
+
+    } catch (error) {
+        console.error('❌ Erreur génération quiz IA:', error);
+        
+        if (loadingContainer) loadingContainer.classList.add('hidden');
+        
+        let errorMessage = 'Erreur lors de la génération du quiz IA';
+        
+        if (error.message.includes('Clé API')) {
+            errorMessage = '⚠️ Clé API Gemini non configurée. Veuillez configurer votre clé dans le fichier app-ameliore.js';
+        } else if (error.message.includes('API')) {
+            errorMessage = '🌐 Erreur de connexion à l\'IA Gemini. Vérifiez votre connexion internet et votre clé API.';
+        } else if (error.message.includes('JSON')) {
+            errorMessage = '🔧 Erreur de format de réponse IA. Réessayez avec des paramètres différents.';
+        } else if (error.message.includes('mal formatée')) {
+            errorMessage = '🤖 L\'IA a généré une réponse incorrecte. Veuillez réessayer.';
+        }
+        
+        toast(errorMessage, 'error', 8000);
+        
+    } finally {
+        if (generateBtn) {
+            generateBtn.disabled = false;
+            generateBtn.textContent = '🚀 Générer le quiz';
+        }
+    }
+}
+
+// ≡ --- QUIZ GAMEPLAY ---
+
+function startQuiz(subjectName, quizData) {
+    if (!quizData || !quizData.questions || quizData.questions.length === 0) {
+        toast('Quiz non disponible ou vide', 'error');
+        return;
+    }
+
+    currentQuizData = quizData;
     currentQuizIndex = 0;
     userAnswers = [];
     quizStartTime = Date.now();
-    
-    renderQuizModal();
-}
 
-function shuffleArray(array) {
-    const shuffled = [...array];
-    for (let i = shuffled.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-    }
-    return shuffled;
-}
+    console.log('🎯 Démarrage quiz:', subjectName, '- Questions:', quizData.questions.length);
 
-function renderQuizModal() {
+    // Ouvrir le modal de quiz
     const modal = document.getElementById('quizModal');
-    const title = document.getElementById('quizModalTitle');
-    const body = document.getElementById('quizModalBody');
-    
-    if (!modal || !title || !body || !currentQuizData) return;
-    
-    title.textContent = currentQuizData.title;
-    
-    if (currentQuizIndex < currentQuizData.questions.length) {
-        renderQuestion();
-    } else {
-        renderQuizResults();
-    }
-    
-    modal.classList.remove('hidden');
+    const modalTitle = document.getElementById('quizModalTitle');
+
+    if (modalTitle) modalTitle.textContent = quizData.titre || subjectName;
+    if (modal) modal.classList.remove('hidden');
+
+    // Afficher la première question
+    displayCurrentQuestion();
 }
 
-function renderQuestion() {
-    const body = document.getElementById('quizModalBody');
+function displayCurrentQuestion() {
+    if (!currentQuizData || currentQuizIndex >= currentQuizData.questions.length) {
+        console.error('❌ Erreur affichage question: données invalides');
+        return;
+    }
+
+    const modalBody = document.getElementById('quizModalBody');
+    if (!modalBody) {
+        console.error('❌ Modal body non trouvé');
+        return;
+    }
+
     const question = currentQuizData.questions[currentQuizIndex];
-    
+    const progress = ((currentQuizIndex) / currentQuizData.questions.length) * 100;
+    const isLastQuestion = currentQuizIndex === currentQuizData.questions.length - 1;
+
     let html = `
         <div class="quiz-progress">
             <div class="progress-bar">
-                <div class="progress-fill" style="width: ${(currentQuizIndex / currentQuizData.questions.length) * 100}%"></div>
+                <div class="progress-fill" style="width: ${progress}%"></div>
             </div>
-            <span class="progress-text">Question ${currentQuizIndex + 1} / ${currentQuizData.questions.length}</span>
+            <div class="progress-text">Question ${currentQuizIndex + 1} sur ${currentQuizData.questions.length}</div>
         </div>
         
         <div class="question-container">
@@ -565,7 +829,7 @@ function renderQuestion() {
                 <div class="question-text">${question.text}</div>
             </div>
     `;
-    
+
     if (question.type === 'qcm') {
         html += '<div class="choices-container">';
         question.choices.forEach((choice, index) => {
@@ -582,29 +846,36 @@ function renderQuestion() {
             <div class="choices-container">
                 <label class="quiz-choice">
                     <input type="radio" name="answer" value="true">
-                    <span class="choice-text">Vrai</span>
+                    <span class="choice-text">✅ Vrai</span>
                 </label>
                 <label class="quiz-choice">
                     <input type="radio" name="answer" value="false">
-                    <span class="choice-text">Faux</span>
+                    <span class="choice-text">❌ Faux</span>
                 </label>
             </div>
         `;
     }
-    
+
     html += `
             <div class="question-actions">
                 <button class="quiz-btn secondary" onclick="previousQuestion()" ${currentQuizIndex === 0 ? 'disabled' : ''}>
                     ← Précédent
                 </button>
                 <button class="quiz-btn primary" onclick="nextQuestion()">
-                    Suivant →
+                    ${isLastQuestion ? '🏁 Terminer le quiz' : 'Suivant →'}
                 </button>
             </div>
         </div>
     `;
-    
-    body.innerHTML = html;
+
+    modalBody.innerHTML = html;
+
+    // Restaurer la réponse précédente si elle existe
+    const previousAnswer = userAnswers[currentQuizIndex];
+    if (previousAnswer !== undefined) {
+        const radio = modalBody.querySelector(`input[value="${previousAnswer}"]`);
+        if (radio) radio.checked = true;
+    }
 }
 
 function nextQuestion() {
@@ -614,368 +885,239 @@ function nextQuestion() {
         toast('Veuillez sélectionner une réponse', 'warning');
         return;
     }
-    
+
     // Sauvegarder la réponse
-    const question = currentQuizData.questions[currentQuizIndex];
-    let userAnswer = selectedAnswer.value;
-    let isCorrect = false;
+    const answerValue = selectedAnswer.value;
+    let userAnswer;
     
-    if (question.type === 'qcm') {
-        userAnswer = parseInt(userAnswer);
-        isCorrect = userAnswer === question.solution;
-    } else if (question.type === 'tf') {
-        userAnswer = userAnswer === 'true';
-        isCorrect = userAnswer === question.solution;
+    if (currentQuizData.questions[currentQuizIndex].type === 'tf') {
+        userAnswer = answerValue === 'true';
+    } else {
+        userAnswer = parseInt(answerValue);
     }
     
-    userAnswers.push({
-        questionIndex: currentQuizIndex,
-        userAnswer: userAnswer,
-        isCorrect: isCorrect,
-        question: question
-    });
-    
-    currentQuizIndex++;
-    renderQuizModal();
+    userAnswers[currentQuizIndex] = userAnswer;
+
+    // Passer à la question suivante ou terminer
+    if (currentQuizIndex === currentQuizData.questions.length - 1) {
+        finishQuiz();
+    } else {
+        currentQuizIndex++;
+        displayCurrentQuestion();
+    }
 }
 
 function previousQuestion() {
     if (currentQuizIndex > 0) {
         currentQuizIndex--;
-        userAnswers.pop(); // Supprimer la dernière réponse
-        renderQuizModal();
+        displayCurrentQuestion();
     }
 }
 
-function renderQuizResults() {
-    const body = document.getElementById('quizModalBody');
-    const correctAnswers = userAnswers.filter(a => a.isCorrect).length;
+async function finishQuiz() {
+    if (!currentQuizData || !userAnswers) {
+        toast('Erreur lors de la finalisation du quiz', 'error');
+        return;
+    }
+
+    // Calculer le score
+    let correctAnswers = 0;
+    const results = [];
+    
+    currentQuizData.questions.forEach((question, index) => {
+        const userAnswer = userAnswers[index];
+        const correctAnswer = question.solution;
+        const isCorrect = userAnswer === correctAnswer;
+        
+        if (isCorrect) correctAnswers++;
+        
+        results.push({
+            question: question.text,
+            userAnswer,
+            correctAnswer,
+            isCorrect,
+            explanation: question.explication,
+            type: question.type,
+            choices: question.choices || []
+        });
+    });
+    
     const totalQuestions = currentQuizData.questions.length;
     const score = Math.round((correctAnswers / totalQuestions) * 100);
-    const duration = Math.round((Date.now() - quizStartTime) / 1000);
+    const duration = Math.round((Date.now() - quizStartTime) / 1000); // en secondes
+
+    console.log(`📊 Quiz terminé: ${correctAnswers}/${totalQuestions} (${score}%) en ${duration}s`);
+
+    // Sauvegarder l'historique si utilisateur connecté
+    if (currentUser) {
+        try {
+            const historyData = {
+                subject: currentQuizData.titre || 'Quiz',
+                score: score,
+                correctAnswers: correctAnswers,
+                totalQuestions: totalQuestions,
+                completedAt: new Date().toISOString(),
+                duration: duration,
+                isAI: currentQuizData.isAI || false
+            };
+
+            await addDoc(collection(db, 'users', currentUser.uid, 'quizHistory'), historyData);
+            
+            // Recharger les données utilisateur
+            await loadUserProgress();
+            updateDashboard();
+            
+            console.log('✅ Historique sauvegardé');
+            
+        } catch (error) {
+            console.error('❌ Erreur sauvegarde quiz:', error);
+            toast('Quiz terminé mais erreur de sauvegarde', 'warning');
+        }
+    }
+
+    // Afficher les résultats
+    displayQuizResults(score, correctAnswers, totalQuestions, results, duration);
+}
+
+function displayQuizResults(score, correct, total, results, duration) {
+    const modalBody = document.getElementById('quizModalBody');
+    if (!modalBody) return;
     
+    // Déterminer le niveau de performance
     let resultClass = 'poor';
-    let resultEmoji = '😟';
-    let resultMessage = 'Continuez vos efforts !';
+    let resultEmoji = '😞';
+    let resultMessage = 'Il faut encore travailler !';
     
     if (score >= 90) {
         resultClass = 'excellent';
         resultEmoji = '🎉';
         resultMessage = 'Excellent travail !';
-    } else if (score >= 70) {
+    } else if (score >= 75) {
         resultClass = 'good';
         resultEmoji = '😊';
-        resultMessage = 'Bien joué !';
-    } else if (score >= 50) {
+        resultMessage = 'Très bien joué !';
+    } else if (score >= 60) {
         resultClass = 'average';
         resultEmoji = '🙂';
         resultMessage = 'Pas mal, continuez !';
     }
-    
+
     let html = `
         <div class="quiz-result">
             <div class="result-header ${resultClass}">
-                <div class="result-emoji">${resultEmoji}</div>
+                <span class="result-emoji">${resultEmoji}</span>
                 <h3>${resultMessage}</h3>
                 <div class="score-display">
-                    <span class="score">${correctAnswers}/${totalQuestions}</span>
-                    <span class="percentage">${score}%</span>
+                    <span class="score">${correct}/${total}</span>
+                    <span class="percentage">(${score}%)</span>
                 </div>
                 <div class="quiz-stats">
-                    <span>Durée: ${duration}s</span>
-                    <span>Matière: ${currentQuizData.subject}</span>
+                    <span>📊 Score: ${score}%</span>
+                    <span>✅ Correct: ${correct}</span>
+                    <span>❌ Incorrect: ${total - correct}</span>
+                    <span>⏱️ Durée: ${duration}s</span>
                 </div>
             </div>
             
             <div class="results-details">
-                <h4>Détail des réponses</h4>
+                <h4>📝 Détail des réponses</h4>
     `;
-    
-    userAnswers.forEach((answer, index) => {
-        const question = answer.question;
-        const isCorrect = answer.isCorrect;
-        
+
+    results.forEach((result, index) => {
         html += `
-            <div class="result-item ${isCorrect ? 'correct' : 'incorrect'}">
+            <div class="result-item ${result.isCorrect ? 'correct' : 'incorrect'}">
                 <div class="result-question">
-                    <span class="result-icon">${isCorrect ? '✅' : '❌'}</span>
+                    <span class="result-icon">${result.isCorrect ? '✅' : '❌'}</span>
                     <div>
-                        <strong>Q${index + 1}: ${question.text}</strong>
-                        <div class="result-answer">
-                            Votre réponse: ${formatAnswer(question, answer.userAnswer)}
-                            ${!isCorrect ? `<br>Réponse correcte: ${formatCorrectAnswer(question)}` : ''}
-                        </div>
+                        <strong>Question ${index + 1}:</strong> ${result.question}
                     </div>
                 </div>
-                ${question.explication ? `<div class="result-explanation">${question.explication}</div>` : ''}
+        `;
+
+        if (result.type === 'qcm') {
+            const userChoice = result.choices[result.userAnswer] || 'Aucune réponse';
+            const correctChoice = result.choices[result.correctAnswer] || 'Erreur';
+            
+            html += `
+                <div class="result-answer">
+                    <strong>Votre réponse:</strong> ${userChoice}
+                    <br>
+                    <strong>Bonne réponse:</strong> ${correctChoice}
+                </div>
+            `;
+        } else if (result.type === 'tf') {
+            html += `
+                <div class="result-answer">
+                    <strong>Votre réponse:</strong> ${result.userAnswer ? 'Vrai' : 'Faux'}
+                    <br>
+                    <strong>Bonne réponse:</strong> ${result.correctAnswer ? 'Vrai' : 'Faux'}
+                </div>
+            `;
+        }
+
+        html += `
+                <div class="result-explanation">
+                    💡 <strong>Explication:</strong> ${result.explanation}
+                </div>
             </div>
         `;
     });
-    
+
     html += `
             </div>
             
             <div class="result-actions">
                 <button class="quiz-btn secondary" onclick="closeQuizModal()">Fermer</button>
-                <button class="quiz-btn primary" onclick="retryQuiz()">Recommencer</button>
+                <button class="quiz-btn primary" onclick="restartCurrentQuiz()">Refaire ce quiz</button>
             </div>
         </div>
     `;
-    
-    body.innerHTML = html;
-    
-    // Sauvegarder le résultat
-    saveQuizResult(score, correctAnswers, totalQuestions, duration);
+
+    modalBody.innerHTML = html;
 }
 
-function formatAnswer(question, userAnswer) {
-    if (question.type === 'qcm') {
-        return question.choices[userAnswer] || 'Erreur';
-    } else if (question.type === 'tf') {
-        return userAnswer ? 'Vrai' : 'Faux';
+function restartCurrentQuiz() {
+    if (currentQuizData) {
+        const subjectName = currentQuizData.titre || 'Quiz';
+        startQuiz(subjectName, currentQuizData);
+    } else {
+        toast('Impossible de relancer le quiz', 'error');
     }
-    return String(userAnswer);
-}
-
-function formatCorrectAnswer(question) {
-    if (question.type === 'qcm') {
-        return question.choices[question.solution] || 'Erreur';
-    } else if (question.type === 'tf') {
-        return question.solution ? 'Vrai' : 'Faux';
-    }
-    return String(question.solution);
-}
-
-async function saveQuizResult(score, correctAnswers, totalQuestions, duration) {
-    if (!currentUser) return;
-    
-    try {
-        const result = {
-            subject: currentQuizData.subject,
-            score: score,
-            correctAnswers: correctAnswers,
-            totalQuestions: totalQuestions,
-            duration: duration,
-            completedAt: Date.now(),
-            userAnswers: userAnswers
-        };
-        
-        await addDoc(collection(db, 'users', currentUser.uid, 'quizHistory'), result);
-        
-        // Recharger les données
-        await loadUserProgress();
-        updateDashboard();
-        
-        console.log('✅ Résultat du quiz sauvegardé');
-    } catch (error) {
-        console.error('❌ Erreur sauvegarde résultat:', error);
-    }
-}
-
-function retryQuiz() {
-    currentQuizIndex = 0;
-    userAnswers = [];
-    quizStartTime = Date.now();
-    
-    // Mélanger à nouveau les questions
-    currentQuizData.questions = shuffleArray(currentQuizData.questions);
-    
-    renderQuizModal();
 }
 
 function closeQuizModal() {
     const modal = document.getElementById('quizModal');
-    if (modal) {
-        modal.classList.add('hidden');
-        currentQuizData = null;
-        currentQuizIndex = 0;
-        userAnswers = [];
-    }
-}
-
-// ≡ --- IA QUIZ GÉNÉRATION ---
-
-function initAIQuiz() {
-    const difficultySlider = document.getElementById('aiDifficulty');
-    const difficultyDisplay = document.getElementById('difficultyDisplay');
+    if (modal) modal.classList.add('hidden');
     
-    if (difficultySlider && difficultyDisplay) {
-        difficultySlider.addEventListener('input', (e) => {
-            const levels = ['Très facile', 'Facile', 'Moyen', 'Difficile', 'Très difficile'];
-            difficultyDisplay.textContent = `Difficulté: ${levels[e.target.value - 1]}`;
-        });
-    }
-}
-
-async function generateAIQuiz() {
-    const subject = document.getElementById('aiSubject').value;
-    const theme = document.getElementById('aiTheme').value;
-    const difficulty = document.getElementById('aiDifficulty').value;
-    const questionCount = document.getElementById('aiQuestionCount').value;
-    
-    if (!subject) {
-        toast('Veuillez sélectionner une matière', 'warning');
-        return;
-    }
-    
-    if (GEMINI_API_KEY === "VOTRE_CLE_API_GEMINI_ICI") {
-        toast('Clé API Gemini non configurée', 'error');
-        return;
-    }
-    
-    // Afficher le loading
-    document.getElementById('aiLoadingContainer').classList.remove('hidden');
-    document.getElementById('aiQuizDisplay').classList.add('hidden');
-    
-    try {
-        const prompt = createAIPrompt(subject, theme, difficulty, questionCount);
-        const response = await callGeminiAPI(prompt);
-        
-        if (response && response.questions) {
-            currentQuizData = {
-                subject: `${subject} (IA)`,
-                questions: response.questions,
-                title: `Quiz IA - ${subject}${theme ? ` - ${theme}` : ''}`
-            };
-            
-            currentQuizIndex = 0;
-            userAnswers = [];
-            quizStartTime = Date.now();
-            
-            renderAIQuizDisplay();
-        } else {
-            throw new Error('Réponse invalide de l\'IA');
-        }
-    } catch (error) {
-        console.error('❌ Erreur génération quiz IA:', error);
-        toast('Erreur lors de la génération du quiz', 'error');
-    } finally {
-        document.getElementById('aiLoadingContainer').classList.add('hidden');
-    }
-}
-
-function createAIPrompt(subject, theme, difficulty, questionCount) {
-    const difficultyLevels = {
-        1: 'très facile (niveau première)',
-        2: 'facile (niveau terminale débutant)',
-        3: 'moyen (niveau terminale standard)',
-        4: 'difficile (niveau terminale avancé)',
-        5: 'très difficile (niveau supérieur au bac)'
-    };
-    
-    const subjectInfo = STI2D_SUBJECTS["Tronc Commun"][subject] || STI2D_SUBJECTS["Spécialités"][subject];
-    const themes = subjectInfo ? subjectInfo.themes.join(', ') : '';
-    
-    return `Génère un quiz de ${questionCount} questions pour le BAC STI2D 2025 en ${subject}.
-    ${theme ? `Thème spécifique: ${theme}` : `Thèmes possibles: ${themes}`}
-    Difficulté: ${difficultyLevels[difficulty]}
-    
-    Le quiz doit être au format JSON exact suivant:
-    {
-        "questions": [
-            {
-                "type": "qcm",
-                "text": "Question ici ?",
-                "choices": ["Réponse A", "Réponse B", "Réponse C", "Réponse D"],
-                "solution": 0,
-                "explication": "Explication de la réponse correcte"
-            }
-        ]
-    }
-    
-    Règles importantes:
-    - Questions adaptées au programme STI2D 2025
-    - Mélange de QCM (type: "qcm") et vrai/faux (type: "tf")
-    - Pour les vrai/faux: solution: true ou false
-    - Explications claires et pédagogiques
-    - Français correct et niveau approprié
-    - Pas de contenu hors programme
-    
-    Réponds UNIQUEMENT avec le JSON, sans texte avant ou après.`;
-}
-
-async function callGeminiAPI(prompt) {
-    const response = await fetch(GEMINI_API_URL, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'x-goog-api-key': GEMINI_API_KEY
-        },
-        body: JSON.stringify({
-            contents: [{
-                parts: [{
-                    text: prompt
-                }]
-            }],
-            generationConfig: {
-                temperature: 0.7,
-                topK: 40,
-                topP: 0.95,
-                maxOutputTokens: 2048
-            }
-        })
-    });
-    
-    if (!response.ok) {
-        throw new Error(`Erreur API Gemini: ${response.status}`);
-    }
-    
-    const data = await response.json();
-    const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-    
-    if (!text) {
-        throw new Error('Réponse vide de l\'API');
-    }
-    
-    try {
-        return JSON.parse(text);
-    } catch (e) {
-        console.error('Erreur parsing JSON:', text);
-        throw new Error('Réponse invalide de l\'IA');
-    }
-}
-
-function renderAIQuizDisplay() {
-    const container = document.getElementById('aiQuizDisplay');
-    container.classList.remove('hidden');
-    
-    let html = `
-        <div class="ai-quiz-header">
-            <h3>${currentQuizData.title}</h3>
-            <p>${currentQuizData.questions.length} questions générées par IA</p>
-        </div>
-        <button class="quiz-btn primary large" onclick="startAIQuiz()">
-            🚀 Commencer le quiz
-        </button>
-    `;
-    
-    container.innerHTML = html;
-}
-
-function startAIQuiz() {
-    renderQuizModal();
+    // Nettoyer les données du quiz
+    currentQuizData = null;
+    currentQuizIndex = 0;
+    userAnswers = [];
+    quizStartTime = null;
 }
 
 // ≡ --- HISTORIQUE ---
 
 function renderHistory() {
-    const container = document.getElementById('history-container');
+    // Mise à jour des stats globales dans l'historique
+    const historyTotal = document.getElementById('history-total');
+    const historyAverage = document.getElementById('history-average');
+    const historyBest = document.getElementById('history-best');
+    
+    if (historyTotal) historyTotal.textContent = userProgress.totalQuizzes;
+    if (historyAverage) historyAverage.textContent = userProgress.averageScore + '%';
+    if (historyBest) historyBest.textContent = userProgress.bestScore + '%';
+    
+    // Affichage de l'historique détaillé
+    const container = document.getElementById('history-items');
     if (!container) return;
     
-    // Mise à jour des stats globales
-    updateHistoryStats();
-    
-    // Rendu de la liste
-    const historyItems = document.getElementById('history-items');
-    if (!historyItems) return;
-    
     if (quizHistory.length === 0) {
-        historyItems.innerHTML = '<p class="no-data">Aucun quiz complété pour le moment</p>';
+        container.innerHTML = '<p class="no-data">Aucun quiz complété pour le moment</p>';
         return;
     }
     
     let html = '';
-    
     quizHistory.forEach(quiz => {
         const date = new Date(quiz.completedAt).toLocaleDateString('fr-FR', {
             year: 'numeric',
@@ -985,254 +1127,274 @@ function renderHistory() {
             minute: '2-digit'
         });
         
-        const scoreClass = quiz.score >= 80 ? 'excellent' : quiz.score >= 60 ? 'good' : 'average';
+        const scoreClass = quiz.score >= 80 ? 'excellent' : 
+                          quiz.score >= 60 ? 'good' : 'average';
+        
         const duration = quiz.duration ? `${quiz.duration}s` : 'N/A';
         
         html += `
             <div class="history-item ${scoreClass}">
                 <div class="history-header">
-                    <h4>${quiz.subject}</h4>
+                    <h4>${quiz.subject}${quiz.isAI ? ' 🤖' : ''}</h4>
                     <span class="history-score">${quiz.score}%</span>
                 </div>
                 <div class="history-details">
                     <span>📅 ${date}</span>
-                    <span>📊 ${quiz.correctAnswers}/${quiz.totalQuestions}</span>
+                    <span>✅ ${quiz.correctAnswers}/${quiz.totalQuestions}</span>
                     <span>⏱️ ${duration}</span>
+                    ${quiz.isAI ? '<span>🤖 Généré par IA</span>' : ''}
                 </div>
             </div>
         `;
     });
     
-    historyItems.innerHTML = html;
-}
-
-function updateHistoryStats() {
-    const totalEl = document.getElementById('history-total');
-    const averageEl = document.getElementById('history-average');
-    const bestEl = document.getElementById('history-best');
-    
-    if (totalEl) totalEl.textContent = userProgress.totalQuizzes;
-    if (averageEl) averageEl.textContent = userProgress.averageScore + '%';
-    if (bestEl) bestEl.textContent = userProgress.bestScore + '%';
+    container.innerHTML = html;
 }
 
 // ≡ --- AUTHENTIFICATION ---
 
-async function handleLogin(email, password) {
+async function handleLogin(event) {
+    event.preventDefault();
+    
+    const emailInput = document.getElementById('loginEmail');
+    const passwordInput = document.getElementById('loginPassword');
+    
+    if (!emailInput || !passwordInput) {
+        toast('Erreur: champs de connexion manquants', 'error');
+        return;
+    }
+
+    const email = emailInput.value.trim();
+    const password = passwordInput.value;
+    
+    if (!email || !password) {
+        toast('Veuillez remplir tous les champs', 'warning');
+        return;
+    }
+
     try {
-        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        await signInWithEmailAndPassword(auth, email, password);
         toast('Connexion réussie !', 'success');
-        console.log('✅ Connexion réussie');
+        
     } catch (error) {
         console.error('❌ Erreur connexion:', error);
-        let message = 'Erreur de connexion';
         
-        switch(error.code) {
-            case 'auth/user-not-found':
-                message = 'Utilisateur introuvable';
-                break;
-            case 'auth/wrong-password':
-                message = 'Mot de passe incorrect';
-                break;
-            case 'auth/invalid-email':
-                message = 'Email invalide';
-                break;
-            case 'auth/too-many-requests':
-                message = 'Trop de tentatives, réessayez plus tard';
-                break;
+        let errorMessage = 'Erreur de connexion';
+        if (error.code === 'auth/user-not-found') {
+            errorMessage = 'Aucun compte trouvé avec cet email';
+        } else if (error.code === 'auth/wrong-password') {
+            errorMessage = 'Mot de passe incorrect';
+        } else if (error.code === 'auth/invalid-email') {
+            errorMessage = 'Email invalide';
+        } else if (error.code === 'auth/too-many-requests') {
+            errorMessage = 'Trop de tentatives. Réessayez plus tard';
         }
         
-        toast(message, 'error');
+        toast(errorMessage, 'error');
     }
 }
 
-async function handleSignup(email, password, specialty, lv1, lv2) {
+async function handleSignup(event) {
+    event.preventDefault();
+    
+    const emailInput = document.getElementById('signupEmail');
+    const passwordInput = document.getElementById('signupPassword');
+    const specialtySelect = document.getElementById('signupSpecialty');
+    const lv1Select = document.getElementById('signupLV1');
+    const lv2Select = document.getElementById('signupLV2');
+    
+    if (!emailInput || !passwordInput || !specialtySelect || !lv1Select) {
+        toast('Erreur: champs d\'inscription manquants', 'error');
+        return;
+    }
+
+    const email = emailInput.value.trim();
+    const password = passwordInput.value;
+    const specialty = specialtySelect.value;
+    const lv1 = lv1Select.value;
+    const lv2 = lv2Select ? lv2Select.value : '';
+    
+    if (!email || !password || !specialty || !lv1) {
+        toast('Veuillez remplir tous les champs obligatoires', 'warning');
+        return;
+    }
+
+    if (password.length < 6) {
+        toast('Le mot de passe doit contenir au moins 6 caractères', 'warning');
+        return;
+    }
+
     try {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        const user = userCredential.user;
         
-        // Créer le profil utilisateur
+        // Sauvegarder les informations utilisateur
         const userData = {
             email: email,
             speciality: specialty,
             lv1: lv1,
-            lv2: lv2 || '',
+            lv2: lv2,
             createdAt: new Date().toISOString()
         };
         
-        await setDoc(doc(db, 'users', user.uid), userData);
+        await setDoc(doc(db, 'users', userCredential.user.uid), userData);
         
         toast('Compte créé avec succès !', 'success');
-        console.log('✅ Inscription réussie');
+        
     } catch (error) {
         console.error('❌ Erreur inscription:', error);
-        let message = 'Erreur lors de la création du compte';
         
-        switch(error.code) {
-            case 'auth/email-already-in-use':
-                message = 'Cet email est déjà utilisé';
-                break;
-            case 'auth/weak-password':
-                message = 'Mot de passe trop faible (min 6 caractères)';
-                break;
-            case 'auth/invalid-email':
-                message = 'Email invalide';
-                break;
+        let errorMessage = 'Erreur lors de l\'inscription';
+        if (error.code === 'auth/email-already-in-use') {
+            errorMessage = 'Un compte existe déjà avec cet email';
+        } else if (error.code === 'auth/invalid-email') {
+            errorMessage = 'Email invalide';
+        } else if (error.code === 'auth/weak-password') {
+            errorMessage = 'Mot de passe trop faible';
         }
         
-        toast(message, 'error');
+        toast(errorMessage, 'error');
     }
 }
 
 async function handleLogout() {
     try {
         await signOut(auth);
+        toast('Déconnexion réussie', 'success');
+        
+        // Nettoyer les données
         currentUser = null;
         userData = {};
         quizHistory = [];
         userProgress = {};
-        toast('Déconnexion réussie', 'info');
-        console.log('✅ Déconnexion réussie');
+        
     } catch (error) {
         console.error('❌ Erreur déconnexion:', error);
         toast('Erreur lors de la déconnexion', 'error');
     }
 }
 
-// ≡ --- INITIALISATION ---
+// ≡ --- EVENT LISTENERS ---
 
 function setupEventListeners() {
     // Navigation
     document.querySelectorAll('.nav-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             const section = btn.getAttribute('data-section');
-            showSection(section);
+            if (section) showSection(section);
         });
     });
-    
+
     // Thème
-    const themeBtn = document.getElementById('themeSwitcher');
-    if (themeBtn) {
-        themeBtn.addEventListener('click', () => switchTheme());
+    const themeSwitcher = document.getElementById('themeSwitcher');
+    if (themeSwitcher) {
+        themeSwitcher.addEventListener('click', () => switchTheme());
     }
-    
+
     // Déconnexion
     const logoutBtn = document.getElementById('logoutBtn');
     if (logoutBtn) {
         logoutBtn.addEventListener('click', handleLogout);
     }
-    
-    // Onglets d'authentification
-    document.querySelectorAll('.auth-tab').forEach(tab => {
-        tab.addEventListener('click', () => {
-            const tabType = tab.getAttribute('data-tab');
-            
-            document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.auth-form').forEach(f => f.classList.remove('active'));
-            
-            tab.classList.add('active');
-            document.getElementById(tabType + 'Form').classList.add('active');
-        });
-    });
-    
-    // Formulaires
+
+    // Authentification
     const loginForm = document.getElementById('loginForm');
     if (loginForm) {
-        loginForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const email = document.getElementById('loginEmail').value;
-            const password = document.getElementById('loginPassword').value;
-            await handleLogin(email, password);
-        });
+        loginForm.addEventListener('submit', handleLogin);
     }
-    
+
     const signupForm = document.getElementById('signupForm');
     if (signupForm) {
-        signupForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const email = document.getElementById('signupEmail').value;
-            const password = document.getElementById('signupPassword').value;
-            const specialty = document.getElementById('signupSpecialty').value;
-            const lv1 = document.getElementById('signupLV1').value;
-            const lv2 = document.getElementById('signupLV2').value;
-            await handleSignup(email, password, specialty, lv1, lv2);
+        signupForm.addEventListener('submit', handleSignup);
+    }
+
+    // Tabs d'authentification
+    document.querySelectorAll('.auth-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            const targetTab = tab.getAttribute('data-tab');
+            
+            // Mise à jour des tabs
+            document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            
+            // Mise à jour des formulaires
+            document.querySelectorAll('.auth-form').forEach(form => form.classList.remove('active'));
+            const targetForm = document.getElementById(targetTab + 'Form');
+            if (targetForm) targetForm.classList.add('active');
         });
-    }
-    
-    // Quiz IA
-    const generateBtn = document.getElementById('generateQuizBtn');
-    if (generateBtn) {
-        generateBtn.addEventListener('click', generateAIQuiz);
-    }
-    
-    // Modal quiz
-    const closeModal = document.getElementById('closeQuizModal');
-    if (closeModal) {
-        closeModal.addEventListener('click', closeQuizModal);
-    }
-    
-    // Fermeture modal par clic extérieur
-    const modal = document.getElementById('quizModal');
-    if (modal) {
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) {
-                closeQuizModal();
-            }
-        });
-    }
-}
+    });
 
-// Fonctions globales pour les event handlers inline
-window.startQuiz = startQuiz;
-window.nextQuestion = nextQuestion;
-window.previousQuestion = previousQuestion;
-window.retryQuiz = retryQuiz;
-window.closeQuizModal = closeQuizModal;
-window.startAIQuiz = startAIQuiz;
+    // Fermeture modal quiz
+    const closeQuizModalBtn = document.getElementById('closeQuizModal');
+    if (closeQuizModalBtn) {
+        closeQuizModalBtn.addEventListener('click', closeQuizModal);
+    }
 
-// ≡ --- DÉMARRAGE DE L'APP ---
-
-async function initApp() {
-    console.log('🚀 Initialisation de Learni STI2D...');
-    
-    // Configuration du thème initial
-    switchTheme(theme);
-    
-    // Chargement des quizzes
-    await loadQuizzes();
-    
-    // Configuration des event listeners
-    setupEventListeners();
-    
-    // Initialisation de l'IA quiz
-    initAIQuiz();
-    
-    // Écoute des changements d'authentification
-    onAuthStateChanged(auth, async (user) => {
-        // Masquer l'écran de chargement
-        setTimeout(() => {
-            document.getElementById('loadingScreen').style.opacity = '0';
-            setTimeout(() => {
-                document.getElementById('loadingScreen').style.display = 'none';
-            }, 300);
-        }, 1000);
-        
+    // Listener d'état d'authentification
+    onAuthStateChanged(auth, (user) => {
         if (user) {
             console.log('👤 Utilisateur connecté:', user.email);
-            await fetchAndSyncUserData(user);
-            showSection('dashboard');
+            fetchAndSyncUserData(user).then(() => {
+                showSection('dashboard');
+            });
         } else {
             console.log('👤 Utilisateur déconnecté');
             showSection('authSection');
         }
     });
-    
-    console.log('✅ Application initialisée');
 }
 
-// Démarrage quand le DOM est prêt
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initApp);
-} else {
-    initApp();
+// Fonctions globales pour les event handlers inline du HTML
+window.nextQuestion = nextQuestion;
+window.previousQuestion = previousQuestion;
+window.closeQuizModal = closeQuizModal;
+window.restartCurrentQuiz = restartCurrentQuiz;
+
+// ≡ --- INITIALISATION ---
+
+async function initApp() {
+    console.log('🚀 Initialisation de Learni STI2D...');
+    
+    try {
+        // Charger les quiz
+        await loadQuizzes();
+        
+        // Initialiser le thème
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme) {
+            switchTheme(savedTheme);
+        } else {
+            switchTheme('dark'); // Thème par défaut
+        }
+        
+        // Configuration des event listeners
+        setupEventListeners();
+        
+        console.log('✅ Application initialisée avec succès');
+        
+    } catch (error) {
+        console.error('❌ Erreur initialisation application:', error);
+        toast('Erreur lors de l\'initialisation de l\'application', 'error');
+    }
 }
+
+// ≡ --- DÉMARRAGE ---
+
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('📱 DOM chargé, démarrage de l\'application...');
+    
+    // Masquer l'écran de chargement après 2 secondes
+    setTimeout(() => {
+        const loadingScreen = document.getElementById('loadingScreen');
+        if (loadingScreen) {
+            loadingScreen.style.opacity = '0';
+            setTimeout(() => {
+                loadingScreen.style.display = 'none';
+            }, 500);
+        }
+    }, 2000);
+
+    // Initialiser l'application
+    initApp();
+});
+
+console.log('✅ Learni STI2D - Fichier JavaScript chargé et corrigé - Version 2.1.0');
