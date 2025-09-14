@@ -859,7 +859,13 @@ function hideLoadingScreen() {
         }, 300);
     }
 }
-
+function switchAuthTab(tabName) {
+    document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.auth-form').forEach(f => f.classList.remove('active'));
+    
+    document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+    document.getElementById(tabName).classList.add('active');
+}
 // Fonctions globales pour les boutons inline
 window.showSection = showSection;
 window.switchTheme = switchTheme;
