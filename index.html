@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>Learni – Bac STI2D</title>
+    <meta name="description" content="Assistant Bac STI2D 2025 : quiz, révisions, stats, IA, progression personnalisée, toutes matières.">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css" />
+
+    <!-- Firebase SDKs (as needed, async for perf) -->
+    <script type="module" src="firebase.js"></script>
+    <script type="module" src="app.js"></script>
+</head>
+<body>
+    <header>
+        <h1 class="logo">Learni</h1>
+        <nav>
+            <button id="progressBtn">Progression</button>
+            <button id="quizBtn">Quiz</button>
+            <button id="reviewBtn">Fiches</button>
+            <button id="aiQuizBtn">Quiz IA</button>
+            <button id="logoutBtn" class="hidden">Déconnexion</button>
+        </nav>
+        <button id="themeSwitcher"></button>
+    </header>
+    <main id="app">
+        <!-- Dynamic content injected here -->
+        <section id="authSection">
+            <h2>Connexion</h2>
+            <form id="loginForm">
+                <input type="email" id="email" placeholder="Email" required />
+                <input type="password" id="password" placeholder="Mot de passe" required />
+                <button type="submit">Se connecter</button>
+            </form>
+            <form id="registerForm">
+                <input type="email" id="regEmail" placeholder="Email" required />
+                <input type="password" id="regPassword" placeholder="Mot de passe" required />
+                <button type="submit">Créer un compte</button>
+            </form>
+        </section>
+        <section id="setupSection" class="hidden">
+            <h2>Profil Bac STI2D</h2>
+            <form id="setupForm">
+                <label>Spécialités :
+                  <select id="specialite" required>
+                    <option value="SIN">SIN (Systèmes info & numérique)</option>
+                    <option value="EE">Énergie et environnement</option>
+                    <option value="IT">Innovation technologique</option>
+                    <option value="AC">Architecture & Construction</option>
+                  </select>
+                </label>
+                <label>Langue vivante 1 :
+                  <select id="lv1"><option value="Anglais">Anglais</option><option value="Espagnol">Espagnol</option><option value="Allemand">Allemand</option></select>
+                </label>
+                <label>Langue vivante 2 :
+                  <select id="lv2"><option value="">—</option><option value="Anglais">Anglais</option><option value="Espagnol">Espagnol</option><option value="Allemand">Allemand</option><option value="Italien">Italien</option></select>
+                </label>
+                <button type="submit">Commencer</button>
+            </form>
+        </section>
+        <section id="dashboardSection" class="hidden"></section>
+        <section id="quizSection" class="hidden"></section>
+        <section id="reviewSection" class="hidden"></section>
+        <section id="aiQuizSection" class="hidden"></section>
+    </main>
+    <footer>Learni – Bac STI2D 2025 – Projet personnel open-source</footer>
+</body>
+</html>
