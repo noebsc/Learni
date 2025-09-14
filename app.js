@@ -334,9 +334,9 @@ Donne exactement ${nb} questions, au format JSON strict (tableau, pas d'objet ra
             return;
         }
         const data = await resp.json();
-        let raw = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-        if (raw && raw.trim().startsWith("```
-            raw = raw.replace(/```json/g, "").replace(/```
+        let raw = data?.candidates?.?.content?.parts?.?.text;
+        if (raw && raw.trim().startsWith("```")) {
+            raw = raw.replace(/``````/g, "").trim();
         }
         let quizAI = [];
         try {
