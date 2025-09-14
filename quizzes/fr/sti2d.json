@@ -765,6 +765,8 @@
       {"type":"qcm","text":"La fréquence cardiaque d’entraînement optimale est en général :","choices":["60-85% FC max","100%","30%","0%"],"solution":0,"explication":"Zone cardio adaptée."},
       {"type":"qcm","text":"Le stretching est conseillé…","choices":["après l'effort","avant l'effort uniquement","jamais","uniquement l'été"],"solution":0,"explication":"Prévention des blessures à froid."},
       {"type":"qcm","text":"L'esprit sportif consiste à…","choices":["respecter règles, adversaires, arbitres","tout faire pour gagner même tricher","encourager l’incivilité","détester la défaite"],"solution":0,"explication":"Valeur EPS fondamentale."},
-      {"type":"qcm","text":"L’attaque placée exige :","choices":["de la stratégie et de l’organisation","toujours courir vite","aucun respect du schéma tactique","de la chance"],"solution":0,"explication":"Anticipation, exploitation des points faibles."}
+      {"type":"qcm","text":"L’attaque placée exige :","choices":["de la stratégie et de l’organisation","toujours courir vite","aucun respect du schéma tactique","de la chance"],"solution":0,"explication":"Anticipation, exploitation des points faibles."}
     ]
   }
+]
+}
