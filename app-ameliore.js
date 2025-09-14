@@ -583,7 +583,8 @@ Génère ${questionCount} questions variées et pertinentes pour le BAC STI2D 20
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                model: "llama-3.1-70b-versatile", // Modèle très performant de Groq
+                model: "llama3-70b-8192",
+ // Modèle très performant de Groq
                 messages: [
                     {
                         role: "system",
