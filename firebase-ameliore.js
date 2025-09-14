@@ -30,11 +30,6 @@ import {
     serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
 
-import { 
-    getAnalytics, 
-    logEvent 
-} from "https://www.gstatic.com/firebasejs/10.12.4/firebase-analytics.js";
-
 import {
     getStorage,
     ref,
@@ -58,9 +53,9 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
-const analytics = getAnalytics(app);
 const storage = getStorage(app);
-
+const analytics = null;
+const logEvent = () => {}; // Fonction vide
 // Fournisseur Google pour l'authentification sociale
 const googleProvider = new GoogleAuthProvider();
 
