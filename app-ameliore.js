@@ -56,33 +56,41 @@ const STI2D_SUBJECTS = {
 // ≡ --- UTILITAIRES GÉNÉRAUX AMÉLIORÉS --- //
 
 // Switching d'onglet principal SPA avec animations
-function showSection(id) {
-    // Animation de sortie
-    document.querySelectorAll('main > section:not(.hidden)').forEach(s => {
-        s.style.opacity = '0';
-        s.style.transform = 'translateY(-20px)';
-        setTimeout(() => s.classList.add('hidden'), 200);
-    });
-
-    // Animation d'entrée
-    setTimeout(() => {
+function showSection(sectionId) {
+    console.log('🔄 Tentative d\'affichage de la section:', sectionId);
+    
+    // Masquer toutes les sections principales
+    const allSections = [
+        'authSection', 'dashboard', 'quizSection', 'ficheSection', 
+        'aiSection', 'profileSection', 'historySection'
+    ];
+    
+    allSections.forEach(id => {
         const section = document.getElementById(id);
         if (section) {
-            section.classList.remove('hidden');
-            section.style.opacity = '0';
-            section.style.transform = 'translateY(20px)';
-            setTimeout(() => {
-                section.style.opacity = '1';
-                section.style.transform = 'translateY(0)';
-            }, 50);
+            section.classList.add('hidden');
+            console.log('✅ Section masquée:', id);
         }
-    }, 220);
-
-    currentSection = id;
-
-    // Mettre à jour les boutons de navigation
-    document.querySelectorAll('nav button').forEach(btn => btn.classList.remove('active'));
-    document.querySelector(`[onclick*="${id}"]`)?.classList.add('active');
+    });
+    
+    // Afficher la section demandée
+    const targetSection = document.getElementById(sectionId);
+    if (targetSection) {
+        targetSection.classList.remove('hidden');
+        console.log('✅ Section affichée:', sectionId);
+        
+        // Mettre à jour la navigation si applicable
+        document.querySelectorAll('.nav-btn').forEach(btn => {
+            btn.classList.remove('active');
+            if (btn.getAttribute('data-section') === sectionId || 
+                btn.getAttribute('onclick')?.includes(sectionId)) {
+                btn.classList.add('active');
+            }
+        });
+    } else {
+        console.error('❌ Section non trouvée:', sectionId);
+        console.log('📋 Sections disponibles:', allSections.filter(id => document.getElementById(id)));
+    }
 }
 
 // Mode sombre/clair amélioré avec animation
@@ -151,16 +159,17 @@ async function fetchAndSyncUserData(user) {
     if (!user) return;
     
     try {
+        console.log('📊 Chargement des données utilisateur...');
         currentUser = user;
         
         // Charger les données utilisateur depuis Firestore
         const userDoc = await getDoc(doc(db, 'users', user.uid));
-        
         if (userDoc.exists()) {
             userData = userDoc.data();
             speciality = userData.speciality || '';
             lv1 = userData.lv1 || '';
             lv2 = userData.lv2 || '';
+            console.log('✅ Données utilisateur chargées:', userData);
         } else {
             // Créer un profil par défaut
             userData = {
@@ -172,15 +181,19 @@ async function fetchAndSyncUserData(user) {
                 createdAt: new Date().toISOString()
             };
             await setDoc(doc(db, 'users', user.uid), userData);
+            console.log('✅ Profil par défaut créé');
         }
         
         // Charger la progression
         await loadUserProgress();
         updateDashboard();
         
+        console.log('✅ Synchronisation terminée');
     } catch (error) {
-        console.error('Erreur sync données utilisateur:', error);
-        toast('Erreur lors du chargement du profil', 'error');
+        console.error('💥 Erreur sync données utilisateur:', error);
+        // Ne pas bloquer l'affichage en cas d'erreur
+        userData = { email: user.email };
+        updateDashboard();
     }
 }
 
@@ -819,17 +832,24 @@ document.addEventListener('DOMContentLoaded', async () => {
         onAuthStateChanged(auth, async (user) => {
             try {
                 if (user) {
-                    console.log('Utilisateur connecté:', user.email);
+                    console.log('🔥 Utilisateur connecté:', user.email);
+                    console.log('🔥 Tentative de chargement des données...');
+                    
                     await fetchAndSyncUserData(user);
+                    
+                    console.log('🔥 Données chargées, tentative d\'affichage dashboard...');
+                    console.log('🔥 Section dashboard trouvée:', document.getElementById('dashboard'));
+                    console.log('🔥 Section authSection trouvée:', document.getElementById('authSection'));
+                    
                     showSection('dashboard');
                     hideLoadingScreen();
                 } else {
-                    console.log('Utilisateur non connecté');
+                    console.log('❌ Utilisateur non connecté');
                     showSection('authSection');
                     hideLoadingScreen();
                 }
             } catch (error) {
-                console.error('Erreur lors de la gestion utilisateur:', error);
+                console.error('💥 Erreur lors de la gestion utilisateur:', error);
                 showSection('authSection');
                 hideLoadingScreen();
             }
