@@ -1,5 +1,7 @@
 // firebase-ameliore.js - Configuration Firebase améliorée
+
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
+
 import {
     getAuth,
     signInWithEmailAndPassword,
@@ -10,6 +12,7 @@ import {
     GoogleAuthProvider,
     signInWithPopup
 } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
+
 import {
     getFirestore,
     doc,
@@ -27,12 +30,14 @@ import {
     deleteDoc,
     serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
+
 import {
     getStorage,
     ref,
     uploadBytes,
     getDownloadURL
 } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-storage.js";
+
 // Configuration Firebase - REMPLACEZ par vos propres clés
 const firebaseConfig = {
     apiKey: "AIzaSyCJvEKibP6odREiSx3AvLuFXvtqIXPVs28",
@@ -44,46 +49,28 @@ const firebaseConfig = {
     appId: "1:316348355341:web:f3de7a1f1b8d20f1ef1644",
     measurementId: "G-RW6DT4GWX5"
 };
+
 // Initialisation Firebase
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const storage = getStorage(app);
 
-// === Analytics PRODUCTION uniquement (aucune erreur en dev) ===
+// === Analytics DÉSACTIVÉ pour éviter l'erreur "process is not defined" ===
 let analytics = null;
-let logEvent = (...args) => {
-    // logEvent de secours fallback
-    console.log('📊 logEvent simulé (dev/fallback):', ...args);
+
+// Fonction logEvent de secours (toujours disponible)
+const logEvent = (...args) => {
+    // Version de développement/fallback
+    console.log('📊 Analytics Event (dev mode):', args[0], args[1] || '');
 };
 
-if (
-    typeof window !== 'undefined'
-    && window.location.hostname !== 'localhost'
-    && window.location.hostname !== '127.0.0.1'
-) {
-    // En prod uniquement : import dynamique d'analytics
-    import("https://www.gstatic.com/firebasejs/10.12.4/firebase-analytics.js")
-        .then(({ getAnalytics, logEvent: firebaseLogEvent }) => {
-            analytics = getAnalytics(app);
-            logEvent = (...args) => {
-                try {
-                    firebaseLogEvent(analytics, ...args);
-                } catch (error) {
-                    console.warn('Analytics event failed:', error);
-                }
-            };
-            console.log('📊 Firebase Analytics initialisé');
-        })
-        .catch(error => {
-            console.warn('⚠️ Analytics non disponible:', error.message);
-        });
-} else {
-    console.log('📊 Analytics désactivé en développement');
-}
+// Message de statut Analytics
+console.log('📊 Analytics désactivé pour éviter les erreurs de compatibilité navigateur');
 
 // Fournisseur Google pour l'authentification sociale
 const googleProvider = new GoogleAuthProvider();
+
 // Export des services Firebase
 export {
     app,
