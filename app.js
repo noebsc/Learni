@@ -289,7 +289,7 @@ function renderAllFiches() {
 function renderAIGenerator() {
     const section = document.getElementById('aiQuizSection');
     section.innerHTML =
-        `<h2>Générer un quiz personnalisé (IA Gemini)</h2>
+        `<h2>Générer un quiz avec l'IA</h2>
          <form id="aiQuizForm">
              <label>Matière :
                  <select id="aiQuizMat">${Object.keys(quizzes).map(mat => `<option>${mat}</option>`)}</select>
@@ -298,9 +298,9 @@ function renderAIGenerator() {
                  <input type="text" id="aiQuizTheme" placeholder="ex : Loi d'Ohm" />
              </label>
              <label>Nombre de questions :
-                 <input type="number" id="aiQuizNb" min="5" max="30" value="10" />
+                 <input type="number" id="aiQuizNb" min="5" max="50" value="10" />
              </label>
-             <button type="submit">Générer Quiz IA</button>
+             <button type="submit">Générer</button>
          </form>
          <div id="aiQuizDisplay"></div>`;
     document.getElementById('aiQuizForm').onsubmit = generateAIQuiz;
@@ -312,24 +312,59 @@ async function generateAIQuiz(e) {
     const mat = document.getElementById('aiQuizMat').value;
     const theme = document.getElementById('aiQuizTheme').value;
     const nb = document.getElementById('aiQuizNb').value;
+
     toast('Génération du quiz IA en cours...');
-    // Appel Gemini
-    let prompt = `Génère un quiz scolaire pour BAC STI2D pour la matière ${mat}, thème "${theme}". ${nb} questions, au format QCM (4 choix par question), donne un champ 'text', un tableau 'choices', un index entier 'solution', et une phrase 'explication' pour chaque question. Réponds au format JSON listé.`;
+
+    // Prompt ultra-dirigiste pour format JSON compatible
+    const prompt = `Génère un quiz scolaire niveau BAC STI2D sur le programme scolaire français le plus récent possible pour la matière ${mat}, thème "${theme}". 
+Donne exactement ${nb} questions, au format JSON strict (toutes questions dans un tableau, pas d'objet racine), chaque question doit contenir les champs : "type":"qcm", "text" (énoncé), "choices" (tableau de 4 réponses), "solution" (index), et "explication" (phrase). Donne uniquement le tableau JSON, rien d'autre.`;
+
     try {
-        const resp = await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=AIzaSyDOeHF6la3IFedlVC4-NM0Yjgj737AIAWo", {
+        // Préfère /v1/ si erreur 404 sur v1beta
+        const url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=AIzaSyDOeHF6la3IFedlVC4-NM0Yjgj737AIAWo";
+
+        const resp = await fetch(url, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({"contents":[{"parts":[{"text":prompt}]}]})
+            body: JSON.stringify({
+                contents: [
+                    { parts: [{ text: prompt }] }
+                ]
+            })
         });
+
+        if (!resp.ok) {
+            toast(`Erreur Gemini API : ${resp.status}`, 'error');
+            return;
+        }
+
         const data = await resp.json();
-        let quizAI = [];
+
+        // Gemini API v1beta retourne le JSON à parser dans : data.candidates[0].content.parts[0].text
         let raw = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-        try { quizAI = JSON.parse(raw); } catch { toast('Erreur parsing réponse IA', 'error'); return;}
+
+        // Cas où Gemini encapsule le résultat dans ``````
+        if (raw && raw.trim().startsWith("```
+            raw = raw.replace(/```json/g, "").replace(/```
+        }
+
+        let quizAI = [];
+        try {
+            quizAI = JSON.parse(raw);
+        } catch {
+            toast('Erreur de parsing JSON retour Gemini', 'error');
+            // Pour debug : console.log("Texte IA : ", raw);
+            return;
+        }
+
         displayAIQuiz(quizAI);
+
     } catch (err) {
-        toast('Erreur Gemini API', 'error');
+        toast('Erreur appel Gemini API', 'error');
+        // Pour debug : console.error(err);
     }
 }
+
 
 // Affiche quiz AI, permet correction locale immédiate
 function displayAIQuiz(quizAI) {
