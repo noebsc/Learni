@@ -674,9 +674,7 @@ function startQuizBySubject(subject) {
 }
 
 // ≡ --- ÉVÉNEMENTS PRINCIPAUX --- //
-
-// Initialisation de l'application
-// ≡ --- INITIALISATION PRINCIPALE --- //
+// ≡ --- INITIALISATION PRINCIPALE COMPLÈTE --- //
 document.addEventListener('DOMContentLoaded', async () => {
     console.log('🚀 Learni STI2D - Initialisation...');
     
@@ -688,28 +686,159 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Charger les quiz
         await loadQuizzes();
         
+        // ≡ GESTIONNAIRES D'ÉVÉNEMENTS AUTH ≡
+        
+        // Gestion des onglets d'authentification
+        document.querySelectorAll('.auth-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                // Retirer active de tous les onglets
+                document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.auth-form').forEach(f => f.classList.remove('active'));
+                
+                // Activer l'onglet cliqué
+                tab.classList.add('active');
+                const targetForm = tab.getAttribute('data-tab');
+                document.getElementById(targetForm).classList.add('active');
+            });
+        });
+        
+        // Formulaire de connexion
+        const loginForm = document.getElementById('loginForm');
+        if (loginForm) {
+            loginForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const email = document.getElementById('loginEmail').value;
+                const password = document.getElementById('loginPassword').value;
+                
+                try {
+                    await signInWithEmailAndPassword(auth, email, password);
+                    toast('Connexion réussie !', 'success');
+                } catch (error) {
+                    console.error('Erreur de connexion:', error);
+                    toast('Erreur de connexion : ' + error.message, 'error');
+                }
+            });
+        }
+        
+        // Formulaire d'inscription
+        const signupForm = document.getElementById('signupForm');
+        if (signupForm) {
+            signupForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const email = document.getElementById('signupEmail').value;
+                const password = document.getElementById('signupPassword').value;
+                const specialty = document.getElementById('signupSpecialty').value;
+                const lv1 = document.getElementById('signupLv1').value;
+                const lv2 = document.getElementById('signupLv2').value;
+                
+                try {
+                    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                    
+                    // Créer le profil utilisateur
+                    await setDoc(doc(db, 'users', userCredential.user.uid), {
+                        email: email,
+                        speciality: specialty,
+                        lv1: lv1,
+                        lv2: lv2,
+                        createdAt: new Date().toISOString()
+                    });
+                    
+                    toast('Inscription réussie !', 'success');
+                } catch (error) {
+                    console.error('Erreur d\'inscription:', error);
+                    toast('Erreur d\'inscription : ' + error.message, 'error');
+                }
+            });
+        }
+        
+        // Bouton de déconnexion
+        const logoutBtn = document.getElementById('logoutBtn');
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', async () => {
+                try {
+                    await signOut(auth);
+                    toast('Déconnexion réussie', 'success');
+                } catch (error) {
+                    console.error('Erreur de déconnexion:', error);
+                    toast('Erreur de déconnexion', 'error');
+                }
+            });
+        }
+        
+        // Bouton de changement de thème
+        const themeBtn = document.getElementById('themeSwitcher');
+        if (themeBtn) {
+            themeBtn.addEventListener('click', () => {
+                switchTheme();
+            });
+        }
+        
+        // Boutons de navigation
+        document.querySelectorAll('.nav-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const section = btn.getAttribute('data-section');
+                if (section) {
+                    showSection(section);
+                }
+            });
+        });
+        
+        // ≡ QUIZ ET IA ≡
+        
+        // Formulaire génération AI
+        const aiForm = document.getElementById('aiQuizForm');
+        if (aiForm) {
+            aiForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const subject = document.getElementById('aiSubject').value;
+                const theme = document.getElementById('aiTheme').value;
+                const difficulty = document.getElementById('aiDifficulty').value;
+                const questionCount = document.getElementById('aiQuestionCount').value;
+                
+                await generateAIQuiz(subject, theme, difficulty, questionCount);
+            });
+        }
+        
+        // Slider de difficulté
+        const difficultySlider = document.getElementById('aiDifficulty');
+        const difficultyDisplay = document.getElementById('difficultyValue');
+        if (difficultySlider && difficultyDisplay) {
+            difficultySlider.addEventListener('input', (e) => {
+                const value = e.target.value;
+                const levels = ['Très facile', 'Facile', 'Moyen', 'Difficile', 'Très difficile'];
+                difficultyDisplay.textContent = levels[value - 1] || 'Moyen';
+            });
+        }
+        
+        // Render des sélections de quiz
+        renderQuizSelect();
+        
+        // ≡ GESTION AUTH STATE ≡
+        
         // Écouter les changements d'authentification
         onAuthStateChanged(auth, async (user) => {
             try {
                 if (user) {
+                    console.log('Utilisateur connecté:', user.email);
                     await fetchAndSyncUserData(user);
                     showSection('dashboard');
+                    hideLoadingScreen();
                 } else {
+                    console.log('Utilisateur non connecté');
                     showSection('authSection');
+                    hideLoadingScreen();
                 }
             } catch (error) {
                 console.error('Erreur lors de la gestion utilisateur:', error);
                 showSection('authSection');
-            } finally {
-                // Masquer l'écran de chargement dans tous les cas
                 hideLoadingScreen();
             }
         });
         
-        // Forcer le masquage après 5 secondes maximum
+        // Forcer le masquage après 8 secondes maximum
         setTimeout(() => {
             hideLoadingScreen();
-        }, 5000);
+        }, 8000);
         
         console.log('✅ Learni STI2D - Initialisé avec succès');
         
