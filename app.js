@@ -336,14 +336,12 @@ Donne exactement ${nb} questions, au format JSON strict (tableau, pas d'objet ra
             toast(`Erreur Gemini API : ${resp.status}`, 'error');
             return;
         }
-
         const data = await resp.json();
-
-        // Parsing du texte Gemini
-        let raw = data?.candidates?.?.content?.parts?.?.text;
-        if (raw && raw.trim().startsWith("```")) {
-            raw = raw.replace(/``````/g, "").trim();
+        let raw = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (raw && raw.trim().startsWith("```
+            raw = raw.replace(/```json/g, "").replace(/```
         }
+
 
         let quizAI = [];
         try {
