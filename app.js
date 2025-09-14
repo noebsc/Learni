@@ -316,7 +316,7 @@ async function generateAIQuiz(e) {
     toast('Génération du quiz IA en cours...');
 
     // Prompt formaté : pas de ```
-    const prompt = `Génère un quiz scolaire niveau BAC STI2D pour la matière ${mat}, thème "${theme}". 
+    const prompt = `Génère un quiz scolaire niveau BAC STI2D à propos du programme scolaire français le plus récent pour la matière ${mat}, thème "${theme}". 
 Donne exactement ${nb} questions, au format JSON strict (tableau, pas d'objet racine), chaque question doit contenir les champs : "type":"qcm", "text" (énoncé), "choices" (tableau de 4 réponses), "solution" (index), et "explication" (phrase). Réponds uniquement par le tableau JSON, aucune autre phrase ni explication.`
 
     try {
