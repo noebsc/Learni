@@ -315,12 +315,11 @@ async function generateAIQuiz(e) {
 
     toast('Génération du quiz IA en cours...');
 
-    // Prompt ultra-dirigiste pour format JSON compatible
-    const prompt = `Génère un quiz scolaire niveau BAC STI2D sur le programme scolaire français le plus récent possible pour la matière ${mat}, thème "${theme}". 
-Donne exactement ${nb} questions, au format JSON strict (toutes questions dans un tableau, pas d'objet racine), chaque question doit contenir les champs : "type":"qcm", "text" (énoncé), "choices" (tableau de 4 réponses), "solution" (index), et "explication" (phrase). Donne uniquement le tableau JSON, rien d'autre.`;
+    // Prompt formaté : pas de ```
+    const prompt = `Génère un quiz scolaire niveau BAC STI2D pour la matière ${mat}, thème "${theme}". 
+Donne exactement ${nb} questions, au format JSON strict (tableau, pas d'objet racine), chaque question doit contenir les champs : "type":"qcm", "text" (énoncé), "choices" (tableau de 4 réponses), "solution" (index), et "explication" (phrase). Réponds uniquement par le tableau JSON, aucune autre phrase ni explication.`
 
     try {
-        // Préfère /v1/ si erreur 404 sur v1beta
         const url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=AIzaSyDOeHF6la3IFedlVC4-NM0Yjgj737AIAWo";
 
         const resp = await fetch(url, {
@@ -340,12 +339,10 @@ Donne exactement ${nb} questions, au format JSON strict (toutes questions dans u
 
         const data = await resp.json();
 
-        // Gemini API v1beta retourne le JSON à parser dans : data.candidates[0].content.parts[0].text
-        let raw = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-
-        // Cas où Gemini encapsule le résultat dans ``````
-        if (raw && raw.trim().startsWith("```
-            raw = raw.replace(/```json/g, "").replace(/```
+        // Parsing du texte Gemini
+        let raw = data?.candidates?.?.content?.parts?.?.text;
+        if (raw && raw.trim().startsWith("```")) {
+            raw = raw.replace(/``````/g, "").trim();
         }
 
         let quizAI = [];
@@ -353,7 +350,7 @@ Donne exactement ${nb} questions, au format JSON strict (toutes questions dans u
             quizAI = JSON.parse(raw);
         } catch {
             toast('Erreur de parsing JSON retour Gemini', 'error');
-            // Pour debug : console.log("Texte IA : ", raw);
+            // debug : console.log("Texte IA : ", raw);
             return;
         }
 
@@ -361,10 +358,9 @@ Donne exactement ${nb} questions, au format JSON strict (toutes questions dans u
 
     } catch (err) {
         toast('Erreur appel Gemini API', 'error');
-        // Pour debug : console.error(err);
+        console.error(err);
     }
 }
-
 
 // Affiche quiz AI, permet correction locale immédiate
 function displayAIQuiz(quizAI) {
