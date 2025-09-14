@@ -308,51 +308,51 @@ function renderAIGenerator() {
 
 // Integration Gemini AI par API HTTP
 async function generateAIQuiz(e) {
-    e.preventDefault();
-    const mat = document.getElementById('aiQuizMat').value;
-    const theme = document.getElementById('aiQuizTheme').value;
-    const nb = document.getElementById('aiQuizNb').value;
-    toast('Génération du quiz IA en cours...');
-
-    // Prompt formaté : pas de réponse parasite
-    const prompt = `Génère un quiz scolaire niveau BAC STI2D à propos du programme scolaire français le plus récent pour la matière ${mat}, thème "${theme}". 
+  e.preventDefault();
+  const mat = document.getElementById('aiQuizMat').value;
+  const theme = document.getElementById('aiQuizTheme').value;
+  const nb = document.getElementById('aiQuizNb').value;
+  toast('Génération du quiz IA en cours...');
+  const prompt = `Génère un quiz scolaire niveau BAC STI2D à propos du programme scolaire français le plus récent pour la matière ${mat}, thème "${theme}". 
 Donne exactement ${nb} questions, au format JSON strict (tableau, pas d'objet racine), chaque question doit contenir les champs : "type":"qcm", "text" (énoncé), "choices" (tableau de 4 réponses), "solution" (index), et "explication" (phrase). Réponds uniquement par le tableau JSON, aucune autre phrase ni explication.`;
-
-    try {
-        const url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=AIzaSyDOeHF6la3IFedlVC4-NM0Yjgj737AIAWo";
-        const resp = await fetch(url, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                contents: [
-                    { parts: [{ text: prompt }] }
-                ]
-            })
-        });
-        if (!resp.ok) {
-            toast(`Erreur Gemini API : ${resp.status}`, 'error');
-            return;
-        }
-        const data = await resp.json();
-        let raw = data?.candidates?.?.content?.parts?.?.text;
-        if (raw && raw.trim().startsWith("```")) {
-            raw = raw.replace(/``````/g, "").trim();
-        }
-        let quizAI = [];
-        try {
-            quizAI = JSON.parse(raw);
-        } catch {
-            toast('Erreur de parsing JSON retour Gemini', 'error');
-            // debug : console.log("Texte IA : ", raw);
-            return;
-        }
-        displayAIQuiz(quizAI);
-    } catch (err) {
-        toast('Erreur appel Gemini API', 'error');
-        console.error(err);
+  try {
+    const url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=AIzaSyDOeHF6la3IFedlVC4-NM0Yjgj737AIAWo";
+    const resp = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        contents: [
+          { parts: [{ text: prompt }] }
+        ]
+      })
+    });
+    if (!resp.ok) {
+      toast(`Erreur Gemini API : ${resp.status}`, 'error');
+      return;
     }
+    const data = await resp.json();
+    let raw = data && data.candidates && data.candidates[0] && data.candidates[0].content &&
+      data.candidates[0].content.parts && data.candidates[0].content.parts[0] &&
+      data.candidates[0].content.parts[0].text
+      ? data.candidates[0].content.parts[0].text
+      : '';
+    if (raw && raw.trim().startsWith("```
+      raw = raw.replace(/```json/g, "").replace(/```
+    }
+    let quizAI = [];
+    try {
+      quizAI = JSON.parse(raw);
+    } catch {
+      toast('Erreur de parsing JSON retour Gemini', 'error');
+      // console.log("Texte IA : ", raw);
+      return;
+    }
+    displayAIQuiz(quizAI);
+  } catch (err) {
+    toast('Erreur appel Gemini API', 'error');
+    console.error(err);
+  }
 }
-
 
 // Affiche quiz AI, permet correction locale immédiate
 function displayAIQuiz(quizAI) {
@@ -369,7 +369,7 @@ function displayAIQuiz(quizAI) {
         e.preventDefault();
         let score=0;
         quizAI.forEach((q,i)=>{
-            const ans=document.querySelector(`[name="q${i}"]:checked`);
+            const ans=document.querySelector(`[name="q${i}"]:checkzzed`);
             if(ans && parseInt(ans.value)===q.solution)score++;
         });
         let total=quizAI.length,percent=Math.round(100*score/total);
@@ -382,5 +382,3 @@ window.addEventListener('hashchange', () => {
     let section = window.location.hash.slice(1) || 'dashboardSection';
     showSection(section);
 });
-
-// ≡ Fin du JS Learni STI2D, SPA moderne, performant et 100% front
