@@ -42,7 +42,7 @@ let userAnswers = [];
 let quizStartTime = null;
 
 // Configuration IA Gemini
-const GEMINI_API_KEY = "VOTRE_CLE_API_GEMINI_ICI"; // À remplacer par votre clé
+const GEMINI_API_KEY = "AIzaSyDAQR7pK1DHSNdwQp_5Y4OVNsgXGl5dpSY"; // À remplacer par votre clé
 const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent";
 
 // Sujets STI2D 2025 complets
