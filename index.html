@@ -1,69 +1,338 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-    <title>Learni – Bac STI2D</title>
-    <meta name="description" content="Assistant Bac STI2D 2025 : quiz, révisions, stats, IA, progression personnalisée, toutes matières.">
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css" />
-
-    <!-- Firebase SDKs (as needed, async for perf) -->
-    <script type="module" src="firebase.js"></script>
-    <script type="module" src="app.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Learni - Assistant BAC STI2D 2025</title>
+    <meta name="description" content="Assistant révision BAC STI2D 2025 avec IA, quiz, fiches, suivi progression">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="styles-ameliore.css">
+    
+    <!-- PWA -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#2f80ed">
+    
+    <!-- SEO -->
+    <meta property="og:title" content="Learni - BAC STI2D 2025">
+    <meta property="og:description" content="Révision intelligente avec IA pour le BAC STI2D">
+    <meta property="og:type" content="website">
+    
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎓</text></svg>">
 </head>
-<body>
-    <header>
-        <h1 class="logo">Learni</h1>
-        <nav>
-            <button id="progressBtn">Progression</button>
-            <button id="quizBtn">Quiz</button>
-            <button id="reviewBtn">Fiches</button>
-            <button id="aiQuizBtn">Quiz IA</button>
-            <button id="logoutBtn" class="hidden">Déconnexion</button>
-        </nav>
-        <button id="themeSwitcher"></button>
+
+<body class="theme-dark">
+    <!-- Loading Screen -->
+    <div id="loadingScreen" class="loading-screen">
+        <div class="loading-content">
+            <div class="loading-logo">🎓</div>
+            <h1>Learni STI2D</h1>
+            <div class="loading-spinner"></div>
+            <p>Chargement de votre assistant révision...</p>
+        </div>
+    </div>
+
+    <!-- Header Navigation -->
+    <header class="main-header">
+        <div class="header-content">
+            <div class="logo-section">
+                <div class="logo">🎓 Learni</div>
+                <span class="logo-subtitle">STI2D 2025</span>
+            </div>
+            
+            <nav class="main-nav">
+                <button id="progressBtn" class="nav-btn active" title="Tableau de bord">
+                    <span class="nav-icon">📊</span>
+                    <span class="nav-text">Dashboard</span>
+                </button>
+                
+                <button id="quizBtn" class="nav-btn" title="Quiz classiques">
+                    <span class="nav-icon">📝</span>
+                    <span class="nav-text">Quiz</span>
+                </button>
+                
+                <button id="aiQuizBtn" class="nav-btn" title="Génération IA">
+                    <span class="nav-icon">🤖</span>
+                    <span class="nav-text">Quiz IA</span>
+                </button>
+                
+                <button id="reviewBtn" class="nav-btn" title="Fiches révision">
+                    <span class="nav-icon">📚</span>
+                    <span class="nav-text">Fiches</span>
+                </button>
+                
+                <button id="historyBtn" class="nav-btn" title="Historique">
+                    <span class="nav-icon">🕒</span>
+                    <span class="nav-text">Historique</span>
+                </button>
+            </nav>
+            
+            <div class="header-actions">
+                <button id="themeSwitcher" class="theme-btn" title="Changer le thème">🌙</button>
+                <button id="logoutBtn" class="logout-btn hidden" title="Déconnexion">
+                    <span class="logout-icon">🚪</span>
+                </button>
+            </div>
+        </div>
     </header>
-    <main id="app">
-        <!-- Dynamic content injected here -->
-        <section id="authSection">
-            <h2>Connexion</h2>
-            <form id="loginForm">
-                <input type="email" id="email" placeholder="Email" required />
-                <input type="password" id="password" placeholder="Mot de passe" required />
-                <button type="submit">Se connecter</button>
-            </form>
-            <form id="registerForm">
-                <input type="email" id="regEmail" placeholder="Email" required />
-                <input type="password" id="regPassword" placeholder="Mot de passe" required />
-                <button type="submit">Créer un compte</button>
-            </form>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        
+        <!-- Section Authentification -->
+        <section id="authSection" class="auth-section">
+            <div class="auth-container">
+                <div class="auth-header">
+                    <h1>🎓 Bienvenue sur Learni</h1>
+                    <p class="auth-subtitle">Votre assistant intelligent pour réussir le BAC STI2D 2025</p>
+                </div>
+                
+                <div class="auth-tabs">
+                    <button class="auth-tab active" data-tab="login">Se connecter</button>
+                    <button class="auth-tab" data-tab="register">S'inscrire</button>
+                </div>
+                
+                <!-- Connexion -->
+                <form id="loginForm" class="auth-form active">
+                    <div class="form-group">
+                        <label for="email">📧 Adresse email</label>
+                        <input type="email" id="email" placeholder="votre-email@exemple.com" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="password">🔐 Mot de passe</label>
+                        <input type="password" id="password" placeholder="Votre mot de passe" required>
+                    </div>
+                    
+                    <button type="submit" class="auth-btn">
+                        Se connecter
+                    </button>
+                </form>
+                
+                <!-- Inscription -->
+                <form id="registerForm" class="auth-form">
+                    <div class="form-group">
+                        <label for="regEmail">📧 Adresse email</label>
+                        <input type="email" id="regEmail" placeholder="votre-email@exemple.com" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="regPassword">🔐 Mot de passe</label>
+                        <input type="password" id="regPassword" placeholder="Min 8 caractères" required>
+                    </div>
+                    
+                    <button type="submit" class="auth-btn">
+                        Créer mon compte
+                    </button>
+                </form>
+                
+                <div class="auth-features">
+                    <h3>✨ Avec Learni, vous pouvez :</h3>
+                    <div class="features-grid">
+                        <div class="feature">
+                            <span class="feature-icon">🤖</span>
+                            <span class="feature-text">Génération de quiz avec l'IA</span>
+                        </div>
+                        <div class="feature">
+                            <span class="feature-icon">📊</span>
+                            <span class="feature-text">Suivi détaillé de progression</span>
+                        </div>
+                        <div class="feature">
+                            <span class="feature-icon">🎯</span>
+                            <span class="feature-text">Quiz adaptés au programme 2025</span>
+                        </div>
+                        <div class="feature">
+                            <span class="feature-icon">🏆</span>
+                            <span class="feature-text">Système d'achievements</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </section>
-        <section id="setupSection" class="hidden">
-            <h2>Profil Bac STI2D</h2>
-            <form id="setupForm">
-                <label>Spécialités :
-                  <select id="specialite" required>
-                    <option value="SIN">SIN (Systèmes info & numérique)</option>
-                    <option value="EE">Énergie et environnement</option>
-                    <option value="IT">Innovation technologique</option>
-                    <option value="AC">Architecture & Construction</option>
-                  </select>
-                </label>
-                <label>Langue vivante 1 :
-                  <select id="lv1"><option value="Anglais">Anglais</option><option value="Espagnol">Espagnol</option><option value="Allemand">Allemand</option></select>
-                </label>
-                <label>Langue vivante 2 :
-                  <select id="lv2"><option value="">—</option><option value="Anglais">Anglais</option><option value="Espagnol">Espagnol</option><option value="Allemand">Allemand</option><option value="Italien">Italien</option></select>
-                </label>
-                <button type="submit">Commencer</button>
-            </form>
+
+        <!-- Section Configuration initiale -->
+        <section id="setupSection" class="setup-section hidden">
+            <div class="setup-container">
+                <div class="setup-header">
+                    <h2>⚙️ Configuration de votre profil</h2>
+                    <p>Personnalisez Learni selon votre parcours STI2D</p>
+                </div>
+                
+                <form id="setupForm" class="setup-form">
+                    <div class="form-group">
+                        <label for="specialite">🔧 Spécialité STI2D</label>
+                        <select id="specialite" required>
+                            <option value="">Choisissez votre spécialité...</option>
+                            <option value="ITEC">Innovation Technologique et Éco-Conception (ITEC)</option>
+                            <option value="SIN">Systèmes d'Information et Numérique (SIN)</option>
+                            <option value="EE">Énergies et Environnement (EE)</option>
+                            <option value="AC">Architecture et Construction (AC)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="lv1">🇬🇧 Langue Vivante 1</label>
+                        <select id="lv1" required>
+                            <option value="">Choisissez votre LV1...</option>
+                            <option value="Anglais">Anglais</option>
+                            <option value="Allemand">Allemand</option>
+                            <option value="Espagnol">Espagnol</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="lv2">🗣️ Langue Vivante 2</label>
+                        <select id="lv2" required>
+                            <option value="">Choisissez votre LV2...</option>
+                            <option value="Anglais">Anglais</option>
+                            <option value="Allemand">Allemand</option>
+                            <option value="Espagnol">Espagnol</option>
+                            <option value="Italien">Italien</option>
+                            <option value="Arabe">Arabe</option>
+                        </select>
+                    </div>
+                    
+                    <button type="submit" class="setup-btn">
+                        🚀 Commencer l'aventure !
+                    </button>
+                </form>
+            </div>
         </section>
-        <section id="dashboardSection" class="hidden"></section>
-        <section id="quizSection" class="hidden"></section>
-        <section id="reviewSection" class="hidden"></section>
-        <section id="aiQuizSection" class="hidden"></section>
+
+        <!-- Section Dashboard -->
+        <section id="dashboardSection" class="dashboard-section hidden">
+            <!-- Contenu généré dynamiquement par JavaScript -->
+        </section>
+
+        <!-- Section Quiz classiques -->
+        <section id="quizSection" class="quiz-section hidden">
+            <div class="quiz-header">
+                <h2>📝 Quiz Classiques</h2>
+                <p class="section-subtitle">Testez vos connaissances avec nos quiz préparés</p>
+            </div>
+            
+            <div class="quiz-filters">
+                <div class="filter-group">
+                    <label>📚 Matière:</label>
+                    <select id="quizSubjectFilter">
+                        <option value="">Toutes les matières</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label>⚡ Niveau:</label>
+                    <select id="quizLevelFilter">
+                        <option value="">Tous niveaux</option>
+                        <option value="facile">Facile</option>
+                        <option value="moyen">Moyen</option>
+                        <option value="difficile">Difficile</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div id="quizList" class="quiz-grid">
+                <!-- Quiz générés dynamiquement -->
+            </div>
+        </section>
+
+        <!-- Section Quiz IA -->
+        <section id="aiQuizSection" class="ai-quiz-section hidden">
+            <!-- Contenu généré dynamiquement par JavaScript -->
+        </section>
+
+        <!-- Section Fiches de révision -->
+        <section id="reviewSection" class="review-section hidden">
+            <div class="review-header">
+                <h2>📚 Fiches de Révision</h2>
+                <p class="section-subtitle">Consultez nos fiches synthétiques par matière et chapitre</p>
+            </div>
+            
+            <div class="review-tabs">
+                <button class="review-tab active" data-category="tronc-commun">Tronc Commun</button>
+                <button class="review-tab" data-category="specialites">Spécialités</button>
+            </div>
+            
+            <div id="reviewContent" class="review-content">
+                <!-- Fiches générées dynamiquement -->
+            </div>
+        </section>
+
+        <!-- Section Historique -->
+        <section id="historySection" class="history-section hidden">
+            <div class="history-header">
+                <h2>🕒 Historique des Quiz</h2>
+                <p class="section-subtitle">Consultez vos performances passées</p>
+            </div>
+            
+            <div class="history-filters">
+                <div class="filter-group">
+                    <label>📅 Période:</label>
+                    <select id="historyPeriodFilter">
+                        <option value="all">Toute période</option>
+                        <option value="week">Cette semaine</option>
+                        <option value="month">Ce mois</option>
+                        <option value="3months">3 derniers mois</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label>🎯 Type:</label>
+                    <select id="historyTypeFilter">
+                        <option value="all">Tous types</option>
+                        <option value="ai">Quiz IA</option>
+                        <option value="classic">Quiz classiques</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div id="historyList" class="history-list">
+                <!-- Historique généré dynamiquement -->
+            </div>
+        </section>
+
     </main>
-    <footer>Learni – Bac STI2D 2025 – Projet personnel open-source</footer>
+
+    <!-- Toast Container -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <!-- Scripts -->
+    <script type="module" src="app-ameliore.js"></script>
+    
+    <script>
+        // Gestion des onglets d'authentification
+        document.addEventListener('DOMContentLoaded', function() {
+            const authTabs = document.querySelectorAll('.auth-tab');
+            const authForms = document.querySelectorAll('.auth-form');
+            
+            authTabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const targetTab = this.dataset.tab;
+                    
+                    // Mise à jour des onglets
+                    authTabs.forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // Mise à jour des formulaires
+                    authForms.forEach(form => {
+                        form.classList.remove('active');
+                        if (form.id === `${targetTab}Form`) {
+                            form.classList.add('active');
+                        }
+                    });
+                });
+            });
+            
+            // Masquer l'écran de chargement
+            setTimeout(() => {
+                document.getElementById('loadingScreen').style.display = 'none';
+            }, 1500);
+        });
+    </script>
 </body>
 </html>
