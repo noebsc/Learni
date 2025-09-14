@@ -1,16 +1,68 @@
 {
-  "name": "Learni STI2D",
-  "short_name": "Learni",
-  "description": "Assistant révision BAC STI2D 2025 avec IA",
-  "start_url": "/",
+  "name": "Learni STI2D - Assistant BAC 2025",
+  "short_name": "Learni STI2D",
+  "description": "Assistant révision intelligent pour réussir le BAC STI2D 2025. Quiz, IA, suivi de progression.",
+  "start_url": "./",
   "display": "standalone",
-  "background_color": "#0d1117",
-  "theme_color": "#2f80ed",
+  "background_color": "#0f172a",
+  "theme_color": "#3b82f6",
+  "orientation": "portrait-primary",
+  "scope": "./",
+  "lang": "fr",
+  "categories": ["education", "productivity"],
   "icons": [
     {
-      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎓</text></svg>",
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='45' fill='%233b82f6'/><text x='50' y='65' font-size='40' text-anchor='middle' fill='white'>🎓</text></svg>",
       "sizes": "192x192",
-      "type": "image/svg+xml"
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    },
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text x='50' y='65' font-size='50' text-anchor='middle'>🎓</text></svg>",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  "features": [
+    "cross-origin-isolated"
+  ],
+  "shortcuts": [
+    {
+      "name": "Quiz rapide",
+      "short_name": "Quiz",
+      "description": "Démarrer un quiz de révision",
+      "url": "./?section=quiz-select",
+      "icons": [
+        {
+          "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text x='50' y='65' font-size='50' text-anchor='middle'>📚</text></svg>",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "Quiz IA",
+      "short_name": "IA",
+      "description": "Générer un quiz avec l'IA",
+      "url": "./?section=quiz-ai",
+      "icons": [
+        {
+          "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text x='50' y='65' font-size='50' text-anchor='middle'>🤖</text></svg>",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "Historique",
+      "short_name": "Stats",
+      "description": "Voir vos résultats et progression",
+      "url": "./?section=history",
+      "icons": [
+        {
+          "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text x='50' y='65' font-size='50' text-anchor='middle'>📊</text></svg>",
+          "sizes": "96x96"
+        }
+      ]
     }
   ]
 }
