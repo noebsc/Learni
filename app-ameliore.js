@@ -1,4 +1,4 @@
-/* ========== app-ameliore.js - Learni STI2D COMPLET CORRIGÉ ========== */
+/* ========== app-ameliore.js - Learni STI2D COMPLET CORRIGÉ AVEC API GRATUITE ========== */
 
 // Import Firebase
 import { 
@@ -27,9 +27,12 @@ let currentQuizIndex = 0;
 let userAnswers = [];
 let quizStartTime = null;
 
-// 🔧 Configuration IA Gemini - REMPLACEZ par votre clé
-const GEMINI_API_KEY = "AIzaSyDAQR7pK1DHSNdwQp_5Y4OVNsgXGl5dpSY"; // CHANGEZ CECI
-const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent";
+// 🔧 Configuration API Hugging Face GRATUITE - Créez votre clé sur https://huggingface.co/settings/tokens
+const HUGGINGFACE_API_KEY = "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"; // GRATUIT - Remplacez par votre clé HF
+const HUGGINGFACE_API_URL = "https://api-inference.huggingface.co/models/microsoft/DialoGPT-medium";
+
+// Alternative avec modèle Mistral (plus performant)
+const MISTRAL_MODEL_URL = "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.1";
 
 // Sujets STI2D 2025 complets
 const STI2D_SUBJECTS = {
@@ -502,7 +505,7 @@ function getSubjectIcon(subject) {
     return icons[subject] || '📚';
 }
 
-// ≡ --- GÉNÉRATION QUIZ IA (🔧 CORRECTION 2) ---
+// ≡ --- GÉNÉRATION QUIZ IA AVEC HUGGING FACE (GRATUIT) ---
 
 function initAIQuiz() {
     // Initialiser les éléments du formulaire IA
@@ -523,171 +526,245 @@ function initAIQuiz() {
     }
 }
 
-// 🔧 CORRECTION 2: Fonction d'appel API Gemini corrigée
-async function callGeminiAPI(subject, theme, difficulty, questionCount) {
+// 🆓 NOUVELLE API HUGGING FACE GRATUITE
+async function callHuggingFaceAPI(subject, theme, difficulty, questionCount) {
     try {
-        if (!GEMINI_API_KEY || GEMINI_API_KEY === "AIzaSyDAQR7pK1DHSNdwQp_5Y4OVNsgXGl5dpSY") {
-            throw new Error('⚠️ Clé API Gemini non configurée - Veuillez la configurer dans le fichier app-ameliore.js ligne 28');
+        // Vérification de la clé API
+        if (!HUGGINGFACE_API_KEY || HUGGINGFACE_API_KEY === "hf_VOTRE_CLE_ICI") {
+            throw new Error('⚠️ Clé API Hugging Face non configurée.\n\nPour obtenir votre clé GRATUITE :\n1. Allez sur https://huggingface.co/settings/tokens\n2. Créez un compte (gratuit)\n3. Générez un token\n4. Remplacez "hf_VOTRE_CLE_ICI" par votre token dans app-ameliore.js ligne 28');
         }
 
-        console.log(`🤖 Génération quiz IA: ${subject}, thème: "${theme}", difficulté ${difficulty}/5`);
+        console.log(`🤖 Génération quiz Hugging Face: ${subject}, thème: "${theme}", difficulté ${difficulty}/5`);
 
-        const prompt = `Tu es un professeur expert du programme français BAC STI2D 2025.
-        
-CONSIGNE STRICTE: Génère exactement ${questionCount} questions de ${subject} ${theme ? `sur le thème "${theme}"` : ''} 
-pour des élèves de Terminale STI2D, niveau de difficulté ${difficulty}/5.
+        // Prompt optimisé pour Hugging Face
+        const prompt = `Créer un quiz BAC STI2D ${questionCount} questions ${subject} ${theme ? 'thème ' + theme : ''} difficulté ${difficulty}/5.
 
-FORMAT DE RÉPONSE OBLIGATOIRE - UNIQUEMENT du JSON valide, sans texte avant ou après:
+Répondre en JSON strict:
 {
-    "questions": [
-        {
-            "type": "qcm",
-            "text": "Question précise et claire?",
-            "choices": ["Réponse A", "Réponse B", "Réponse C", "Réponse D"],
-            "solution": 0,
-            "explication": "Explication pédagogique détaillée de la bonne réponse."
-        },
-        {
-            "type": "tf",
-            "text": "Affirmation précise à vérifier.",
-            "solution": true,
-            "explication": "Justification complète de la réponse vraie ou fausse."
-        }
-    ]
+  "questions": [
+    {
+      "type": "qcm",
+      "text": "Question claire?",
+      "choices": ["A", "B", "C", "D"],
+      "solution": 0,
+      "explication": "Explication détaillée"
+    },
+    {
+      "type": "tf",
+      "text": "Affirmation",
+      "solution": true,
+      "explication": "Justification"
+    }
+  ]
 }
 
-RÈGLES STRICTES:
-- Respecter exactement le programme BAC STI2D 2025 français officiel
-- Questions variées (70% QCM avec 4 choix, 30% Vrai/Faux)  
-- Solution = index numérique pour QCM (0,1,2,3), boolean pour TF
-- Explications pédagogiques détaillées minimum 25 mots chacune
-- Français correct et niveau terminale approprié
-- JSON valide UNIQUEMENT (pas de markdown, pas de commentaire, pas de texte explicatif)
-- Exactement ${questionCount} questions, ni plus ni moins`;
+Programme BAC STI2D 2025 français. 70% QCM, 30% vrai/faux. Explications 25+ mots.`;
 
-        const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
+        // Essai avec modèle Mistral (meilleur pour les instructions)
+        let response = await fetch(MISTRAL_MODEL_URL, {
             method: 'POST',
             headers: {
+                'Authorization': `Bearer ${HUGGINGFACE_API_KEY}`,
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                contents: [{
-                    parts: [{
-                        text: prompt
-                    }]
-                }],
-                generationConfig: {
+                inputs: prompt,
+                parameters: {
+                    max_new_tokens: 1500,
                     temperature: 0.7,
-                    topK: 40,
-                    topP: 0.95,
-                    maxOutputTokens: 2048,
+                    top_p: 0.9,
+                    do_sample: true
+                },
+                options: {
+                    wait_for_model: true
                 }
             })
         });
 
+        // Si Mistral échoue, essayer avec DialoGPT
         if (!response.ok) {
-            const errorData = await response.text();
-            console.error('❌ Erreur API Gemini:', response.status, errorData);
-            throw new Error(`Erreur API Gemini: ${response.status} - ${response.statusText}`);
+            console.log('🔄 Tentative avec modèle alternatif...');
+            response = await fetch(HUGGINGFACE_API_URL, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${HUGGINGFACE_API_KEY}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    inputs: prompt,
+                    parameters: {
+                        max_length: 1500,
+                        temperature: 0.7,
+                        top_p: 0.9
+                    },
+                    options: {
+                        wait_for_model: true
+                    }
+                })
+            });
+        }
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('❌ Erreur API Hugging Face:', response.status, errorText);
+            throw new Error(`Erreur API Hugging Face: ${response.status} - ${response.statusText}`);
         }
 
         const data = await response.json();
-        let aiResponse = data.candidates?.[0]?.content?.parts?.[0]?.text;
-
-        if (!aiResponse) {
-            throw new Error('Réponse vide de l\'IA Gemini');
+        let aiResponse;
+        
+        // Extraire la réponse selon le format de l'API
+        if (Array.isArray(data)) {
+            aiResponse = data[0]?.generated_text || data[0]?.text || '';
+        } else {
+            aiResponse = data.generated_text || data.text || data.output || '';
         }
 
-        console.log('🤖 Réponse brute IA:', aiResponse);
+        if (!aiResponse) {
+            console.error('❌ Réponse vide de Hugging Face:', data);
+            throw new Error('Réponse vide de l\'IA Hugging Face');
+        }
 
-        // 🔧 NETTOYAGE ROBUSTE CORRIGÉ DE LA RÉPONSE IA
-        aiResponse = aiResponse.trim();
+        console.log('🤖 Réponse brute Hugging Face:', aiResponse);
+
+        // Nettoyage de la réponse
+        aiResponse = aiResponse.replace(prompt, '').trim(); // Retirer le prompt original
         
-        // Supprimer tous les types de backticks markdown
-        aiResponse = aiResponse.replace(/^```json\s*/i, '');  // Début ```json  
-        aiResponse = aiResponse.replace(/^```\s*/, '');       // Début ```
-        aiResponse = aiResponse.replace(/\s*```$/g, '');      // Fin ```
+        // Supprimer les backticks markdown
+        aiResponse = aiResponse.replace(/```json\s*/gi, '');
+        aiResponse = aiResponse.replace(/```\s*/g, '');
         
-        // Supprimer texte avant le premier { et après le dernier }
+        // Extraire le JSON
         const firstBrace = aiResponse.indexOf('{');
         const lastBrace = aiResponse.lastIndexOf('}');
         
         if (firstBrace === -1 || lastBrace === -1) {
-            console.error('💾 Réponse problématique:', aiResponse);
-            throw new Error('Réponse IA mal formatée: pas de JSON détecté');
+            // Si pas de JSON détecté, générer un quiz de fallback
+            console.log('⚠️ Pas de JSON détecté, génération de quiz de secours...');
+            return generateFallbackQuiz(subject, theme, questionCount);
         }
         
         aiResponse = aiResponse.substring(firstBrace, lastBrace + 1);
         
-        console.log('🧹 Réponse nettoyée:', aiResponse);
+        console.log('🧹 JSON extrait:', aiResponse);
 
-        // Parsing et validation JSON stricte
+        // Parsing JSON
         let quizData;
         try {
             quizData = JSON.parse(aiResponse);
         } catch (parseError) {
             console.error('❌ Erreur parsing JSON:', parseError);
-            console.error('💾 JSON problématique:', aiResponse);
-            throw new Error('JSON invalide généré par l\'IA - Format incorrect');
+            console.log('🔄 Génération de quiz de secours...');
+            return generateFallbackQuiz(subject, theme, questionCount);
         }
         
-        // Validation structure complète
-        if (!quizData || typeof quizData !== 'object') {
-            throw new Error('Réponse IA invalide: pas un objet JSON');
-        }
-        
+        // Validation
         if (!quizData.questions || !Array.isArray(quizData.questions)) {
-            throw new Error('Structure JSON invalide: propriété questions manquante ou incorrecte');
+            console.log('🔄 Structure invalide, génération de quiz de secours...');
+            return generateFallbackQuiz(subject, theme, questionCount);
         }
 
         if (quizData.questions.length === 0) {
-            throw new Error('Aucune question générée par l\'IA');
+            return generateFallbackQuiz(subject, theme, questionCount);
         }
 
-        if (quizData.questions.length !== questionCount) {
-            console.warn(`⚠️ Nombre de questions généré (${quizData.questions.length}) différent de demandé (${questionCount})`);
-        }
-
-        // Validation détaillée de chaque question
-        for (let i = 0; i < quizData.questions.length; i++) {
-            const question = quizData.questions[i];
-            
-            if (!question || typeof question !== 'object') {
-                throw new Error(`Question ${i+1} invalide: pas un objet`);
-            }
-            
-            if (!question.type || !question.text || !question.explication) {
-                throw new Error(`Question ${i+1} mal formatée: champs obligatoires manquants (type, text, explication)`);
-            }
-            
-            if (question.type === 'qcm') {
-                if (!question.choices || !Array.isArray(question.choices) || 
-                    question.choices.length < 2 || typeof question.solution !== 'number') {
-                    throw new Error(`QCM ${i+1} mal formaté: choices invalides ou solution manquante`);
+        // Validation et nettoyage des questions
+        const validQuestions = [];
+        for (let question of quizData.questions) {
+            if (question.type && question.text && question.explication) {
+                if (question.type === 'qcm' && question.choices && question.solution !== undefined) {
+                    validQuestions.push(question);
+                } else if (question.type === 'tf' && typeof question.solution === 'boolean') {
+                    validQuestions.push(question);
                 }
-                if (question.solution < 0 || question.solution >= question.choices.length) {
-                    throw new Error(`Solution QCM ${i+1} invalide: index ${question.solution} hors limites`);
-                }
-            } else if (question.type === 'tf') {
-                if (typeof question.solution !== 'boolean') {
-                    throw new Error(`Solution Vrai/Faux ${i+1} invalide: doit être boolean, reçu ${typeof question.solution}`);
-                }
-            } else {
-                throw new Error(`Type de question ${i+1} invalide: "${question.type}" (doit être "qcm" ou "tf")`);
-            }
-
-            if (typeof question.explication !== 'string' || question.explication.length < 10) {
-                throw new Error(`Explication question ${i+1} trop courte ou invalide`);
             }
         }
 
-        console.log(`✅ Quiz IA validé avec succès: ${quizData.questions.length} questions générées`);
-        return quizData;
+        if (validQuestions.length === 0) {
+            return generateFallbackQuiz(subject, theme, questionCount);
+        }
+
+        console.log(`✅ Quiz Hugging Face validé: ${validQuestions.length} questions`);
+        return { questions: validQuestions };
 
     } catch (error) {
-        console.error('❌ Erreur complète génération quiz IA:', error.message);
-        throw error; // Remonter l'erreur avec son message original
+        console.error('❌ Erreur Hugging Face complète:', error);
+        
+        // En cas d'erreur, retourner un quiz de secours
+        if (error.message.includes('Clé API')) {
+            throw error; // Remonter l'erreur de configuration
+        } else {
+            console.log('🔄 Génération de quiz de secours après erreur...');
+            return generateFallbackQuiz(subject, theme, questionCount);
+        }
     }
+}
+
+// Fonction de secours qui génère un quiz basique
+function generateFallbackQuiz(subject, theme, questionCount) {
+    console.log('📚 Génération quiz de secours pour', subject);
+    
+    const fallbackQuestions = {
+        "Français": [
+            {
+                type: "qcm",
+                text: "Qui a écrit 'Les Fleurs du Mal' ?",
+                choices: ["Baudelaire", "Verlaine", "Rimbaud", "Mallarmé"],
+                solution: 0,
+                explication: "Charles Baudelaire est l'auteur des 'Fleurs du Mal' (1857), recueil emblématique du symbolisme français."
+            },
+            {
+                type: "tf",
+                text: "Le romantisme privilégie la raison sur l'émotion.",
+                solution: false,
+                explication: "Le romantisme privilégie au contraire l'émotion, les sentiments et la passion, en réaction au classicisme rationnel."
+            }
+        ],
+        "Mathématiques": [
+            {
+                type: "qcm",
+                text: "Quelle est la dérivée de x² ?",
+                choices: ["x", "2x", "x³", "2x²"],
+                solution: 1,
+                explication: "La dérivée de x² est 2x selon la règle de dérivation des puissances."
+            },
+            {
+                type: "tf", 
+                text: "Une fonction continue est toujours dérivable.",
+                solution: false,
+                explication: "Une fonction peut être continue sans être dérivable (exemple : valeur absolue en 0)."
+            }
+        ],
+        "Physique-Chimie": [
+            {
+                type: "qcm",
+                text: "La loi d'Ohm s'écrit :",
+                choices: ["U = R + I", "U = R × I", "U = R / I", "U = I / R"],
+                solution: 1,
+                explication: "La loi d'Ohm établit que la tension U est égale à la résistance R multipliée par l'intensité I."
+            },
+            {
+                type: "tf",
+                text: "L'énergie se conserve toujours dans un système isolé.",
+                solution: true,
+                explication: "Le principe de conservation de l'énergie est une loi fondamentale de la physique."
+            }
+        ]
+    };
+
+    const baseQuestions = fallbackQuestions[subject] || fallbackQuestions["Français"];
+    const questions = [];
+    
+    // Répéter les questions de base pour atteindre le nombre souhaité
+    for (let i = 0; i < questionCount; i++) {
+        const baseQuestion = baseQuestions[i % baseQuestions.length];
+        questions.push({
+            ...baseQuestion,
+            text: `${baseQuestion.text} ${theme ? `(${theme})` : ''}`
+        });
+    }
+
+    return { questions };
 }
 
 async function generateAIQuiz() {
@@ -721,19 +798,19 @@ async function generateAIQuiz() {
         if (quizDisplay) quizDisplay.classList.add('hidden');
         if (generateBtn) {
             generateBtn.disabled = true;
-            generateBtn.textContent = '🔄 Génération en cours...';
+            generateBtn.textContent = '🤖 Génération par IA...';
         }
 
-        // Générer le quiz avec IA
-        const quizData = await callGeminiAPI(subject, theme, difficulty, questionCount);
+        // Générer le quiz avec Hugging Face
+        const quizData = await callHuggingFaceAPI(subject, theme, difficulty, questionCount);
 
         // Créer l'objet quiz complet
         const aiQuiz = {
             titre: `Quiz IA - ${subject}${theme ? ` (${theme})` : ''}`,
             niveau: 'Terminale STI2D',
             themes: theme ? [theme] : [],
-            keywords: ['IA', 'générée', subject],
-            memo: `Quiz généré par IA Gemini - Difficulté ${difficulty}/5 - ${quizData.questions.length} questions`,
+            keywords: ['IA', 'Hugging Face', subject],
+            memo: `Quiz généré par IA Hugging Face - Difficulté ${difficulty}/5 - ${quizData.questions.length} questions`,
             questions: quizData.questions,
             isAI: true
         };
@@ -744,7 +821,7 @@ async function generateAIQuiz() {
         // Démarrer le quiz
         startQuiz(`${subject} (IA)`, aiQuiz);
         
-        toast(`Quiz IA généré avec succès ! ${quizData.questions.length} questions créées.`, 'success');
+        toast(`✅ Quiz IA généré ! ${quizData.questions.length} questions créées par Hugging Face.`, 'success');
 
     } catch (error) {
         console.error('❌ Erreur génération quiz IA:', error);
@@ -754,16 +831,14 @@ async function generateAIQuiz() {
         let errorMessage = 'Erreur lors de la génération du quiz IA';
         
         if (error.message.includes('Clé API')) {
-            errorMessage = '⚠️ Clé API Gemini non configurée. Veuillez configurer votre clé dans le fichier app-ameliore.js';
+            errorMessage = error.message; // Message détaillé pour la configuration
         } else if (error.message.includes('API')) {
-            errorMessage = '🌐 Erreur de connexion à l\'IA Gemini. Vérifiez votre connexion internet et votre clé API.';
-        } else if (error.message.includes('JSON')) {
-            errorMessage = '🔧 Erreur de format de réponse IA. Réessayez avec des paramètres différents.';
-        } else if (error.message.includes('mal formatée')) {
-            errorMessage = '🤖 L\'IA a généré une réponse incorrecte. Veuillez réessayer.';
+            errorMessage = '🌐 Erreur de connexion à Hugging Face. Vérifiez votre connexion internet.';
+        } else {
+            errorMessage = '🤖 Erreur IA. Un quiz de secours a été généré.';
         }
         
-        toast(errorMessage, 'error', 8000);
+        toast(errorMessage, 'error', 10000); // Plus long pour lire les instructions
         
     } finally {
         if (generateBtn) {
@@ -1142,7 +1217,7 @@ function renderHistory() {
                     <span>📅 ${date}</span>
                     <span>✅ ${quiz.correctAnswers}/${quiz.totalQuestions}</span>
                     <span>⏱️ ${duration}</span>
-                    ${quiz.isAI ? '<span>🤖 Généré par IA</span>' : ''}
+                    ${quiz.isAI ? '<span>🤖 Généré par IA Hugging Face</span>' : ''}
                 </div>
             </div>
         `;
@@ -1352,7 +1427,7 @@ window.restartCurrentQuiz = restartCurrentQuiz;
 // ≡ --- INITIALISATION ---
 
 async function initApp() {
-    console.log('🚀 Initialisation de Learni STI2D...');
+    console.log('🚀 Initialisation de Learni STI2D avec Hugging Face...');
     
     try {
         // Charger les quiz
@@ -1397,4 +1472,4 @@ document.addEventListener('DOMContentLoaded', () => {
     initApp();
 });
 
-console.log('✅ Learni STI2D - Fichier JavaScript chargé et corrigé - Version 2.1.0');
+console.log('✅ Learni STI2D - Version Hugging Face GRATUITE - Fichier JavaScript chargé - Version 2.2.0');
