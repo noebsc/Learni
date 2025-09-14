@@ -1,0 +1,219 @@
+{
+  "Français": [
+    {
+      "titre": "Français BAC STI2D 2025 - Programme Complet",
+      "niveau": "Terminale",
+      "themes": ["Poésie", "Théâtre", "Roman", "Argumentation", "Réécriture"],
+      "keywords": ["analyse", "mouvement", "texte", "style", "auteur"],
+      "memo": "Maîtriser l'analyse littéraire, les mouvements, la dissertation et l'écriture d'invention.",
+      "questions": [
+        {"type":"qcm","text":"Qui a écrit 'Germinal' ?","choices":["Émile Zola","Victor Hugo","Gustave Flaubert","Guy de Maupassant"],"solution":0,"explication":"Émile Zola, chef de file du naturalisme, a écrit 'Germinal' en 1885."},
+        {"type":"qcm","text":"Le romantisme privilégie :","choices":["l'émotion et le rêve","la logique pure","le respect des règles","l'imitation des anciens"],"solution":0,"explication":"Le romantisme met l'accent sur les sentiments, la nature et l'individualité."},
+        {"type":"qcm","text":"Une métaphore est :","choices":["une comparaison avec 'comme'","une comparaison sans outil","une répétition","une question rhétorique"],"solution":1,"explication":"La métaphore est une comparaison implicite sans outil de comparaison."},
+        {"type":"tf","text":"Voltaire appartient au siècle des Lumières.","solution":true,"explication":"Voltaire (1694-1778) est un philosophe majeur du XVIIIe siècle, siècle des Lumières."},
+        {"type":"qcm","text":"'Le Cid' est une œuvre de :","choices":["Racine","Corneille","Molière","Marivaux"],"solution":1,"explication":"'Le Cid' (1637) est la célèbre tragi-comédie de Pierre Corneille."},
+        {"type":"qcm","text":"L'alexandrin compte :","choices":["10 syllabes","12 syllabes","8 syllabes","14 syllabes"],"solution":1,"explication":"L'alexandrin est un vers de 12 syllabes, très utilisé dans la poésie classique."},
+        {"type":"qcm","text":"Le registre pathétique vise à :","choices":["faire rire","émouvoir","critiquer","instruire"],"solution":1,"explication":"Le registre pathétique cherche à susciter la pitié et l'émotion chez le lecteur."},
+        {"type":"qcm","text":"'Les Fleurs du Mal' est l'œuvre de :","choices":["Verlaine","Baudelaire","Rimbaud","Mallarmé"],"solution":1,"explication":"Charles Baudelaire a publié 'Les Fleurs du Mal' en 1857."},
+        {"type":"tf","text":"L'autobiographie utilise la première personne.","solution":true,"explication":"L'autobiographie est le récit de sa propre vie, donc à la première personne."},
+        {"type":"qcm","text":"Le théâtre classique respecte :","choices":["la règle des trois unités","la liberté totale","seulement l'unité d'action","aucune règle"],"solution":0,"explication":"Unité de temps, de lieu et d'action caractérisent le théâtre classique."},
+        {"type":"qcm","text":"Un sonnet compte :","choices":["12 vers","14 vers","16 vers","18 vers"],"solution":1,"explication":"Le sonnet est un poème de 14 vers répartis en deux quatrains et deux tercets."},
+        {"type":"qcm","text":"La dissertation littéraire doit :","choices":["donner son opinion","raconter une histoire","argumenter avec méthode","résumer l'œuvre"],"solution":2,"explication":"La dissertation demande une argumentation structurée et méthodique."},
+        {"type":"qcm","text":"L'Encyclopédie a été dirigée par :","choices":["Voltaire","Rousseau","Diderot et d'Alembert","Montesquieu"],"solution":2,"explication":"Diderot et d'Alembert ont dirigé l'Encyclopédie, symbole des Lumières."},
+        {"type":"tf","text":"Le réalisme cherche à dépeindre la réalité sociale.","solution":true,"explication":"Le réalisme du XIXe siècle vise à représenter fidèlement la société."},
+        {"type":"qcm","text":"'Candide' est un :","choices":["roman","conte philosophique","pièce de théâtre","recueil poétique"],"solution":1,"explication":"'Candide' de Voltaire est un conte philosophique satirique."},
+        {"type":"qcm","text":"L'antithèse oppose :","choices":["deux sons","deux idées","deux personnages","deux œuvres"],"solution":1,"explication":"L'antithèse est une figure qui met en opposition deux idées contraires."},
+        {"type":"qcm","text":"Le narrateur omniscient :","choices":["ne sait rien","sait tout","ne parle jamais","est un personnage"],"solution":1,"explication":"Le narrateur omniscient connaît tous les détails et pensées des personnages."},
+        {"type":"qcm","text":"'Phèdre' est une tragédie de :","choices":["Corneille","Racine","Molière","Voltaire"],"solution":1,"explication":"'Phèdre' (1677) est le chef-d'œuvre tragique de Jean Racine."},
+        {"type":"tf","text":"L'ironie consiste à dire le contraire de ce qu'on pense.","solution":true,"explication":"L'ironie exprime le contraire de sa pensée pour critiquer ou se moquer."},
+        {"type":"qcm","text":"Le mouvement surréaliste prône :","choices":["la logique","l'inconscient et le rêve","l'imitation","la tradition"],"solution":1,"explication":"Le surréalisme explore l'inconscient, le rêve et l'automatisme."}
+      ]
+    }
+  ],
+  "Philosophie": [
+    {
+      "titre": "Philosophie BAC STI2D 2025 - Notions Essentielles",
+      "niveau": "Terminale",
+      "themes": ["Liberté", "Justice", "Bonheur", "Connaissance", "Travail", "Art"],
+      "keywords": ["liberté", "justice", "raison", "morale", "vérité"],
+      "memo": "Comprendre les grandes questions philosophiques et savoir argumenter.",
+      "questions": [
+        {"type":"qcm","text":"Qui a écrit 'Le Banquet' ?","choices":["Aristote","Platon","Kant","Nietzsche"],"solution":1,"explication":"'Le Banquet' est un dialogue de Platon sur l'amour et la beauté."},
+        {"type":"qcm","text":"'Je pense, donc je suis' est de :","choices":["Kant","Descartes","Hegel","Sartre"],"solution":1,"explication":"Le 'Cogito ergo sum' est la formule célèbre de René Descartes."},
+        {"type":"tf","text":"Selon Kant, la morale est universelle.","solution":true,"explication":"L'impératif catégorique de Kant exige l'universalisation de la maxime morale."},
+        {"type":"qcm","text":"L'inconscient a été théorisé par :","choices":["Freud","Jung","Durkheim","Weber"],"solution":0,"explication":"Sigmund Freud est le fondateur de la psychanalyse et de la théorie de l'inconscient."},
+        {"type":"qcm","text":"La maïeutique de Socrate consiste à :","choices":["enseigner","accoucher les esprits","juger","commander"],"solution":1,"explication":"La maïeutique socratique aide à faire naître les idées par le questionnement."},
+        {"type":"qcm","text":"L'existentialisme affirme que :","choices":["l'essence précède l'existence","l'existence précède l'essence","tout est déterminé","rien n'existe"],"solution":1,"explication":"Pour Sartre, l'homme existe d'abord, puis se définit par ses choix."},
+        {"type":"qcm","text":"Le contrat social implique :","choices":["l'anarchie","l'échange de droits naturels contre droits civils","la dictature","l'isolement"],"solution":1,"explication":"Selon Rousseau, on échange la liberté naturelle contre la liberté civile."},
+        {"type":"tf","text":"Pour les stoïciens, le bonheur vient de l'acceptation du destin.","solution":true,"explication":"Les stoïciens prônent l'ataraxie : accepter ce qui ne dépend pas de nous."},
+        {"type":"qcm","text":"L'art selon Hegel exprime :","choices":["le beau naturel","l'absolu dans le sensible","les émotions","la technique"],"solution":1,"explication":"Pour Hegel, l'art manifeste l'Esprit absolu dans une forme sensible."},
+        {"type":"qcm","text":"La justice distributive vise à :","choices":["donner à chacun la même chose","donner selon les mérites","punir","récompenser"],"solution":1,"explication":"Aristote distingue justice distributive (selon le mérite) et commutative (égalité)."},
+        {"type":"qcm","text":"Le doute méthodique est une méthode de :","choices":["Descartes","Pascal","Kant","Hume"],"solution":0,"explication":"Descartes utilise le doute hyperbolique pour fonder la certitude."},
+        {"type":"tf","text":"Rousseau pense que l'homme est bon par nature.","solution":true,"explication":"'L'homme naît bon, c'est la société qui le corrompt' selon Rousseau."},
+        {"type":"qcm","text":"L'utilitarisme vise à :","choices":["maximiser le bonheur du plus grand nombre","imposer ses idées","éviter la souffrance","nier le plaisir"],"solution":0,"explication":"Bentham et Mill prônent le calcul du bonheur collectif."},
+        {"type":"qcm","text":"La liberté chez Sartre est :","choices":["illusion","responsabilité totale","soumission","facilité"],"solution":1,"explication":"'L'homme est condamné à être libre' et donc totalement responsable."},
+        {"type":"qcm","text":"L'État de nature selon Hobbes est :","choices":["pacifique","guerre de tous contre tous","organisé","juste"],"solution":1,"explication":"Pour Hobbes, l'état de nature est 'la guerre de tous contre tous'."},
+        {"type":"tf","text":"Spinoza identifie Dieu et la Nature.","solution":true,"explication":"'Deus sive Natura' : Spinoza conçoit un panthéisme où Dieu = Nature."},
+        {"type":"qcm","text":"L'aliénation selon Marx concerne :","choices":["la folie","le travail","l'amour","l'art"],"solution":1,"explication":"Marx analyse l'aliénation du travailleur dans le système capitaliste."},
+        {"type":"qcm","text":"'Connais-toi toi-même' est une maxime :","choices":["cartésienne","kantienne","socratique","nietzschéenne"],"solution":2,"explication":"Devise gravée sur le temple de Delphes, reprise par Socrate."},
+        {"type":"qcm","text":"Le surhomme de Nietzsche est :","choices":["un être supérieur physiquement","celui qui crée ses valeurs","un dictateur","un saint"],"solution":1,"explication":"L'Übermensch crée ses propres valeurs après la 'mort de Dieu'."},
+        {"type":"tf","text":"Kant distingue phénomène et noumène.","solution":true,"explication":"Kant oppose ce qui apparaît (phénomène) à la chose en soi (noumène)."}
+      ]
+    }
+  ],
+  "Mathématiques": [
+    {
+      "titre": "Mathématiques BAC STI2D 2025 - Programme Appliqué",
+      "niveau": "Terminale",
+      "themes": ["Fonctions", "Probabilités", "Statistiques", "Complexes", "Suites"],
+      "keywords": ["dérivée", "intégrale", "probabilité", "complexe", "suite"],
+      "memo": "Mathématiques appliquées aux sciences et techniques, avec un focus pratique.",
+      "questions": [
+        {"type":"qcm","text":"La dérivée de cos(x) est :","choices":["sin(x)","-sin(x)","cos(x)","-cos(x)"],"solution":1,"explication":"La dérivée de cos(x) est -sin(x)."},
+        {"type":"qcm","text":"Le discriminant de ax²+bx+c est :","choices":["b²-4ac","b²+4ac","a²-4bc","4ac-b²"],"solution":0,"explication":"Δ = b²-4ac détermine le nombre de solutions de l'équation."},
+        {"type":"qcm","text":"i² vaut :","choices":["1","-1","i","-i"],"solution":1,"explication":"Par définition, i² = -1 dans l'ensemble des nombres complexes."},
+        {"type":"qcm","text":"ln(e) vaut :","choices":["0","1","e","π"],"solution":1,"explication":"Le logarithme népérien de e vaut 1 par définition."},
+        {"type":"tf","text":"La somme des probabilités d'une loi discrète vaut 1.","solution":true,"explication":"Les probabilités de tous les événements élémentaires somment à 1."},
+        {"type":"qcm","text":"Une fonction dérivable est :","choices":["toujours continue","parfois continue","jamais continue","constante"],"solution":0,"explication":"La dérivabilité implique la continuité (mais pas l'inverse)."},
+        {"type":"qcm","text":"La primitive de 1/x est :","choices":["ln|x|","x²/2","1/x²","-1/x²"],"solution":0,"explication":"∫(1/x)dx = ln|x| + C pour x ≠ 0."},
+        {"type":"qcm","text":"P(A∪B) = P(A) + P(B) si :","choices":["A et B sont indépendants","A et B sont incompatibles","A ⊂ B","A = B"],"solution":1,"explication":"Si A∩B = ∅, alors P(A∪B) = P(A) + P(B)."},
+        {"type":"qcm","text":"Le module de z = 3 + 4i est :","choices":["3","4","5","7"],"solution":2,"explication":"|z| = √(3² + 4²) = √(9 + 16) = 5."},
+        {"type":"tf","text":"Une suite géométrique de raison 2 double à chaque terme.","solution":true,"explication":"Si q = 2, alors u_{n+1} = 2u_n."},
+        {"type":"qcm","text":"L'équation y = 2x + 3 représente :","choices":["une parabole","une droite","une hyperbole","un cercle"],"solution":1,"explication":"C'est l'équation d'une droite de coefficient directeur 2."},
+        {"type":"qcm","text":"La variance est :","choices":["toujours positive","parfois négative","toujours nulle","indéfinie"],"solution":0,"explication":"La variance, étant un carré moyen, est toujours positive ou nulle."},
+        {"type":"qcm","text":"∫₀¹ x dx vaut :","choices":["0","1/2","1","2"],"solution":1,"explication":"∫₀¹ x dx = [x²/2]₀¹ = 1/2 - 0 = 1/2."},
+        {"type":"qcm","text":"Si f(x) = x³, alors f'(x) = :","choices":["x²","3x²","3x","x³/3"],"solution":1,"explication":"La dérivée de x^n est n·x^(n-1), donc (x³)' = 3x²."},
+        {"type":"tf","text":"Deux événements indépendants peuvent être incompatibles.","solution":false,"explication":"Si A et B sont incompatibles et de probabilité non nulle, ils ne sont pas indépendants."},
+        {"type":"qcm","text":"lim(x→+∞) 1/x = :","choices":["0","1","+∞","-∞"],"solution":0,"explication":"Quand x tend vers l'infini, 1/x tend vers 0."},
+        {"type":"qcm","text":"La médiane divise l'effectif en :","choices":["3 parties égales","2 parties égales","4 parties égales","10 parties égales"],"solution":1,"explication":"La médiane sépare la série en deux parties de même effectif."},
+        {"type":"qcm","text":"e^(ln(2)) vaut :","choices":["ln(2)","2","e","1"],"solution":1,"explication":"Les fonctions exp et ln sont réciproques : e^(ln(x)) = x."},
+        {"type":"qcm","text":"Une suite arithmétique de raison 3 :","choices":["triple à chaque terme","ajoute 3 à chaque terme","multiplie par 3","divise par 3"],"solution":1,"explication":"Dans une suite arithmétique, on ajoute la raison : u_{n+1} = u_n + r."},
+        {"type":"tf","text":"cos²(x) + sin²(x) = 1 pour tout x.","solution":true,"explication":"C'est l'identité trigonométrique fondamentale."}
+      ]
+    }
+  ],
+  "Physique-Chimie": [
+    {
+      "titre": "Physique-Chimie BAC STI2D 2025 - Sciences Appliquées",
+      "niveau": "Terminale", 
+      "themes": ["Électricité", "Énergie", "Mécanique", "Ondes", "Chimie"],
+      "keywords": ["tension", "courant", "puissance", "énergie", "circuit"],
+      "memo": "Sciences physiques et chimiques appliquées aux technologies.",
+      "questions": [
+        {"type":"qcm","text":"La loi d'Ohm s'écrit :","choices":["U = RI","U = I/R","I = UR","P = UI²"],"solution":0,"explication":"U = R × I où U est la tension, R la résistance, I l'intensité."},
+        {"type":"qcm","text":"L'unité de la puissance électrique est :","choices":["le joule","l'ampère","le watt","le volt"],"solution":2,"explication":"La puissance se mesure en watts (W)."},
+        {"type":"qcm","text":"Dans un circuit série, l'intensité :","choices":["varie selon les résistances","est identique partout","double à chaque résistance","devient nulle"],"solution":1,"explication":"En série, l'intensité est la même dans toutes les branches."},
+        {"type":"tf","text":"La tension aux bornes d'éléments en parallèle est identique.","solution":true,"explication":"En parallèle, tous les éléments ont la même tension à leurs bornes."},
+        {"type":"qcm","text":"La fréquence du courant alternatif domestique en France est :","choices":["25 Hz","50 Hz","100 Hz","220 Hz"],"solution":1,"explication":"Le réseau électrique français fonctionne à 50 Hz."},
+        {"type":"qcm","text":"L'énergie cinétique s'exprime par :","choices":["mgh","½mv²","mc²","Pt"],"solution":1,"explication":"Ec = ½mv² où m est la masse et v la vitesse."},
+        {"type":"qcm","text":"La vitesse de la lumière dans le vide est environ :","choices":["300 000 m/s","300 000 km/s","3 × 10⁸ m/s","3 × 10⁶ m/s"],"solution":2,"explication":"c = 3 × 10⁸ m/s = 300 000 km/s."},
+        {"type":"tf","text":"L'énergie se conserve dans un système isolé.","solution":true,"explication":"C'est le principe de conservation de l'énergie."},
+        {"type":"qcm","text":"Un pH de 7 correspond à :","choices":["une solution acide","une solution basique","une solution neutre","une solution inconnue"],"solution":2,"explication":"pH = 7 définit la neutralité à 25°C."},
+        {"type":"qcm","text":"La période T et la fréquence f sont liées par :","choices":["T = f","T = 1/f","f = 2T","T = 2πf"],"solution":1,"explication":"T = 1/f où T est en secondes et f en hertz."},
+        {"type":"qcm","text":"Dans une réaction d'oxydoréduction :","choices":["il y a échange d'électrons","il n'y a pas d'échange","seuls les protons bougent","rien ne bouge"],"solution":0,"explication":"Les réactions redox impliquent des transferts d'électrons."},
+        {"type":"tf","text":"La résistance d'un conducteur augmente avec sa longueur.","solution":true,"explication":"R = ρL/S : la résistance est proportionnelle à la longueur."},
+        {"type":"qcm","text":"L'effet Joule transforme l'énergie électrique en :","choices":["énergie mécanique","énergie thermique","énergie lumineuse","énergie chimique"],"solution":1,"explication":"L'effet Joule dissipe l'énergie électrique sous forme de chaleur."},
+        {"type":"qcm","text":"Une onde électromagnétique transporte :","choices":["de la matière","de l'énergie","des électrons","des protons"],"solution":1,"explication":"Les ondes électromagnétiques transportent de l'énergie sans matière."},
+        {"type":"qcm","text":"La masse molaire de l'eau H₂O est environ :","choices":["16 g/mol","18 g/mol","20 g/mol","32 g/mol"],"solution":1,"explication":"M(H₂O) = 2×1 + 16 = 18 g/mol."},
+        {"type":"tf","text":"Un acide libère des ions H⁺ en solution aqueuse.","solution":true,"explication":"Définition d'Arrhenius : un acide libère H⁺."},
+        {"type":"qcm","text":"La capacité d'un condensateur s'exprime en :","choices":["ampères","farads","henrys","ohms"],"solution":1,"explication":"La capacité se mesure en farads (F)."},
+        {"type":"qcm","text":"Dans un transformateur idéal :","choices":["U₁/U₂ = N₁/N₂","U₁/U₂ = N₂/N₁","U₁ = U₂","I₁ = I₂"],"solution":0,"explication":"Le rapport des tensions égale le rapport du nombre de spires."},
+        {"type":"qcm","text":"La poussée d'Archimède dépend :","choices":["de la masse de l'objet","du volume immergé","de la forme de l'objet","de la couleur"],"solution":1,"explication":"F = ρ_fluide × g × V_immergé."},
+        {"type":"tf","text":"Les atomes d'un même élément ont le même nombre de protons.","solution":true,"explication":"Le numéro atomique Z définit le nombre de protons."}
+      ]
+    }
+  ],
+  "Histoire-Géographie": [
+    {
+      "titre": "Histoire-Géographie BAC STI2D 2025 - Monde Contemporain",
+      "niveau": "Terminale",
+      "themes": ["Guerres mondiales", "Géopolitique", "Mondialisation", "France", "Europe"],
+      "keywords": ["guerre", "territoire", "mondialisation", "géopolitique"],
+      "memo": "Comprendre le monde contemporain et les enjeux géopolitiques actuels.",
+      "questions": [
+        {"type":"qcm","text":"La Première Guerre mondiale débute en :","choices":["1912","1914","1916","1918"],"solution":1,"explication":"La Grande Guerre commence le 28 juillet 1914."},
+        {"type":"qcm","text":"Le rideau de fer symbolise :","choices":["la frontière franco-allemande","la division de l'Europe après 1945","le mur de Berlin uniquement","les Alpes"],"solution":1,"explication":"Expression de Churchill pour la division Est/Ouest de l'Europe."},
+        {"type":"qcm","text":"L'ONU est créée en :","choices":["1944","1945","1946","1947"],"solution":1,"explication":"L'Organisation des Nations Unies est créée le 26 juin 1945."},
+        {"type":"tf","text":"La décolonisation s'accélère après 1945.","solution":true,"explication":"Les années 1945-1975 voient l'indépendance de nombreux pays."},
+        {"type":"qcm","text":"La construction européenne débute avec :","choices":["la CEE","la CECA","l'UE","Maastricht"],"solution":1,"explication":"La CECA (1951) est la première étape de la construction européenne."},
+        {"type":"qcm","text":"La chute du mur de Berlin a lieu en :","choices":["1987","1989","1991","1993"],"solution":1,"explication":"Le mur tombe le 9 novembre 1989."},
+        {"type":"qcm","text":"La mondialisation se caractérise par :","choices":["l'isolement des États","l'interconnexion des économies","le protectionnisme","l'autarcie"],"solution":1,"explication":"Processus d'interconnexion des économies, sociétés et cultures."},
+        {"type":"tf","text":"La France compte environ 67 millions d'habitants.","solution":true,"explication":"Population française en 2025."},
+        {"type":"qcm","text":"L'UE utilise principalement comme monnaie :","choices":["le dollar","l'euro","la livre","le franc"],"solution":1,"explication":"L'euro est la monnaie de 20 pays de l'UE sur 27."},
+        {"type":"qcm","text":"La guerre froide oppose :","choices":["France et Allemagne","USA et URSS","Chine et Inde","Nord et Sud"],"solution":1,"explication":"Conflit idéologique entre les blocs américain et soviétique (1947-1991)."},
+        {"type":"qcm","text":"Le développement durable concilie :","choices":["économie et écologie seulement","économie, écologie et social","croissance pure","décroissance totale"],"solution":1,"explication":"Les trois piliers du développement durable."},
+        {"type":"tf","text":"Hitler arrive au pouvoir en Allemagne en 1933.","solution":true,"explication":"Adolf Hitler devient chancelier le 30 janvier 1933."},
+        {"type":"qcm","text":"La décolonisation de l'Algérie se termine en :","choices":["1954","1958","1962","1968"],"solution":2,"explication":"Accords d'Évian signés le 18 mars 1962."},
+        {"type":"qcm","text":"Les BRICS regroupent :","choices":["pays développés","pays émergents","pays les plus pauvres","pays européens"],"solution":1,"explication":"Brésil, Russie, Inde, Chine, Afrique du Sud : économies émergentes."},
+        {"type":"qcm","text":"L'IDH mesure :","choices":["la richesse uniquement","le développement humain","la population","la superficie"],"solution":1,"explication":"Indice de Développement Humain : santé, éducation, niveau de vie."},
+        {"type":"tf","text":"La PAC est une politique européenne.","solution":true,"explication":"Politique Agricole Commune de l'Union européenne."},
+        {"type":"qcm","text":"La Shoah désigne :","choices":["une bataille","l'extermination des Juifs","un traité","une ville"],"solution":1,"explication":"Génocide des Juifs d'Europe par l'Allemagne nazie."},
+        {"type":"qcm","text":"La Ve République française débute en :","choices":["1946","1954","1958","1968"],"solution":2,"explication":"Constitution de la Ve République adoptée en 1958."},
+        {"type":"qcm","text":"L'OTAN est une alliance :","choices":["économique","militaire","culturelle","environnementale"],"solution":1,"explication":"Organisation du Traité de l'Atlantique Nord, alliance militaire."},
+        {"type":"tf","text":"Internet a révolutionné la mondialisation.","solution":true,"explication":"Les NTIC ont accéléré les échanges mondiaux."}
+      ]
+    }
+  ],
+  "2I2D": [
+    {
+      "titre": "Ingénierie, Innovation et Développement Durable - BAC STI2D 2025",
+      "niveau": "Terminale",
+      "themes": ["Innovation", "Développement durable", "Matériaux", "Énergie", "Information"],
+      "keywords": ["innovation", "durable", "éco-conception", "énergie", "matériaux"],
+      "memo": "Comprendre les enjeux technologiques contemporains et l'éco-conception.",
+      "questions": [
+        {"type":"qcm","text":"Le développement durable intègre :","choices":["seulement l'économie","économie et environnement","économie, environnement et social","seulement l'environnement"],"solution":2,"explication":"Les trois piliers : économique, environnemental et social."},
+        {"type":"qcm","text":"L'éco-conception vise à :","choices":["réduire l'impact environnemental","augmenter les profits","accélérer la production","simplifier le design"],"solution":0,"explication":"Intégrer l'environnement dès la conception du produit."},
+        {"type":"tf","text":"L'analyse du cycle de vie étudie l'impact d'un produit de sa création à sa fin de vie.","solution":true,"explication":"L'ACV examine toutes les étapes : extraction, fabrication, usage, fin de vie."},
+        {"type":"qcm","text":"Les énergies renouvelables incluent :","choices":["le pétrole","le charbon","le solaire et l'éolien","le gaz naturel"],"solution":2,"explication":"Énergies inépuisables : solaire, éolien, hydraulique, biomasse..."},
+        {"type":"qcm","text":"L'efficacité énergétique consiste à :","choices":["consommer plus","consommer la même chose avec moins d'énergie","arrêter de consommer","changer d'énergie"],"solution":1,"explication":"Optimiser le rapport service rendu/énergie consommée."},
+        {"type":"qcm","text":"Un matériau biosourcé provient :","choices":["de ressources fossiles","de ressources minérales","de ressources vivantes","de déchets plastiques"],"solution":2,"explication":"Issus de la biomasse végétale ou animale."},
+        {"type":"tf","text":"L'innovation peut être technologique ou d'usage.","solution":true,"explication":"Innovation de produit, procédé, organisation, commercialisation..."},
+        {"type":"qcm","text":"La domotique vise à :","choices":["décorer la maison","automatiser la maison","chauffer la maison","nettoyer la maison"],"solution":1,"explication":"Automatisation et contrôle intelligent du habitat."},
+        {"type":"qcm","text":"Les matériaux composites associent :","choices":["deux métaux","plusieurs matériaux aux propriétés complémentaires","des plastiques uniquement","des céramiques uniquement"],"solution":1,"explication":"Combinent matrice et renforts pour optimiser les propriétés."},
+        {"type":"qcm","text":"L'empreinte carbone mesure :","choices":["la surface au sol","les émissions de CO₂","la consommation d'eau","le bruit produit"],"solution":1,"explication":"Quantité de gaz à effet de serre émise par une activité."},
+        {"type":"tf","text":"Les smart grids permettent une meilleure gestion de l'énergie.","solution":true,"explication":"Réseaux électriques intelligents qui optimisent production et consommation."},
+        {"type":"qcm","text":"Le principe des 3R signifie :","choices":["Récupérer, Redistribuer, Relancer","Réduire, Réutiliser, Recycler","Réparer, Remplacer, Renouveler","Rassembler, Regrouper, Relocaliser"],"solution":1,"explication":"Hiérarchie des actions pour réduire les déchets."},
+        {"type":"qcm","text":"Une maison passive :","choices":["ne consomme pas d'énergie","consomme très peu d'énergie","produit plus qu'elle consomme","est inhabitée"],"solution":1,"explication":"Consommation énergétique très faible grâce à l'isolation et l'étanchéité."},
+        {"type":"qcm","text":"L'obsolescence programmée consiste à :","choices":["améliorer les produits","limiter volontairement la durée de vie","réparer les pannes","recycler les déchets"],"solution":1,"explication":"Stratégie visant à réduire la durée de vie pour stimuler le renouvellement."},
+        {"type":"tf","text":"L'économie circulaire s'oppose au modèle linéaire 'extraire-fabriquer-jeter'.","solution":true,"explication":"Modèle régénératif qui boucle les flux de matières."},
+        {"type":"qcm","text":"La transition énergétique vise à :","choices":["augmenter la consommation","passer aux énergies renouvelables","utiliser plus de fossiles","arrêter toute énergie"],"solution":1,"explication":"Évolution vers un mix énergétique décarboné."},
+        {"type":"qcm","text":"Un audit énergétique permet de :","choices":["augmenter la consommation","identifier les gisements d'économie","changer de fournisseur","calculer les factures"],"solution":1,"explication":"Diagnostic des performances énergétiques d'un bâtiment."},
+        {"type":"qcm","text":"L'Internet des Objets (IoT) permet :","choices":["de connecter les objets du quotidien","de réparer les objets","de vendre des objets","de fabriquer des objets"],"solution":0,"explication":"Connexion d'objets physiques à Internet pour échanger des données."},
+        {"type":"tf","text":"La réglementation thermique RT2020 est plus exigeante que la RT2012.","solution":true,"explication":"Évolution vers des bâtiments à énergie positive (BEPOS)."},
+        {"type":"qcm","text":"La biomasse énergétique utilise :","choices":["des fossiles","des matières organiques","des minéraux","de l'uranium"],"solution":1,"explication":"Combustibles d'origine biologique : bois, biogaz, biocarburants..."}
+      ]
+    }
+  ],
+  "Anglais": [
+    {
+      "titre": "Anglais BAC STI2D 2025 - Communication et Technologie",
+      "niveau": "Terminale",
+      "themes": ["Innovation", "Environnement", "Société", "Technologie", "Communication"],
+      "keywords": ["technology", "innovation", "environment", "communication", "society"],
+      "memo": "Maîtriser l'anglais technique et de communication dans un contexte technologique.",
+      "questions": [
+        {"type":"qcm","text":"'Renewable energy' signifie :","choices":["énergie renouvelable","énergie nucléaire","énergie fossile","énergie gaspillée"],"solution":0,"explication":"Renewable = renouvelable (solaire, éolien, etc.)"},
+        {"type":"qcm","text":"'Sustainable development' se traduit par :","choices":["développement économique","développement rapide","développement durable","développement technologique"],"solution":2,"explication":"Sustainable = durable, soutenable"},
+        {"type":"tf","text":"'Smart grid' signifie réseau électrique intelligent.","solution":true,"explication":"Smart grid = réseau électrique intelligent et automatisé"},
+        {"type":"qcm","text":"'Carbon footprint' désigne :","choices":["empreinte digitale","empreinte carbone","empreinte écologique","trace de pas"],"solution":1,"explication":"Impact en termes d'émissions de CO₂"},
+        {"type":"qcm","text":"'To upgrade' signifie :","choices":["dégrader","maintenir","améliorer","détruire"],"solution":2,"explication":"Upgrade = mettre à niveau, améliorer"},
+        {"type":"qcm","text":"'Green technology' fait référence à :","choices":["technologie colorée","technologie écologique","technologie complexe","technologie gratuite"],"solution":1,"explication":"Green = vert, écologique, respectueux de l'environnement"},
+        {"type":"tf","text":"'Artificial Intelligence' se traduit par Intelligence Artificielle.","solution":true,"explication":"AI = IA en français"},
+        {"type":"qcm","text":"'To implement' signifie :","choices":["implanter","mettre en œuvre","compliquer","supprimer"],"solution":1,"explication":"Implement = mettre en place, réaliser"},
+        {"type":"qcm","text":"'Efficiency' se traduit par :","choices":["efficience","déficience","suffisance","résistance"],"solution":0,"explication":"Efficiency = efficacité, rendement"},
+        {"type":"qcm","text":"'User-friendly' signifie :","choices":["ami de l'utilisateur","facile à utiliser","utilisateur amical","interface sociale"],"solution":1,"explication":"User-friendly = ergonomique, intuitif"},
+        {"type":"tf","text":"'Breakthrough' signifie percée ou innovation majeure.","solution":true,"explication":"Breakthrough = découverte importante, percée technologique"},
+        {"type":"qcm","text":"'To troubleshoot' signifie :","choices":["créer des problèmes","éviter les problèmes","résoudre les problèmes","ignorer les problèmes"],"solution":2,"explication":"Troubleshoot = diagnostiquer et résoudre des pannes"},
+        {"type":"qcm","text":"'Cutting-edge technology' désigne :","choices":["technologie de coupe","technologie de pointe","technologie ancienne","technologie simple"],"solution":1,"explication":"Cutting-edge = à la pointe, très avancé"},
+        {"type":"qcm","text":"'To browse' signifie :","choices":["naviguer (internet)","réparer","acheter","télécharger"],"solution":0,"explication":"Browse = naviguer, parcourir (web, documents)"},
+        {"type":"tf","text":"'Hardware' désigne les composants physiques d'un ordinateur.","solution":true,"explication":"Hardware = matériel (vs software = logiciel)"},
+        {"type":"qcm","text":"'To backup' signifie :","choices":["reculer","sauvegarder","avancer","supprimer"],"solution":1,"explication":"Backup = sauvegarde de données"},
+        {"type":"qcm","text":"'Wireless' se traduit par :","choices":["avec fil","sans fil","multi-fils","faux fil"],"solution":1,"explication":"Wireless = sans fil (WiFi, Bluetooth...)"},
+        {"type":"qcm","text":"'To download' signifie :","choices":["monter","descendre","télécharger","charger"],"solution":2,"explication":"Download = télécharger depuis internet"},
+        {"type":"tf","text":"'Cloud computing' signifie informatique en nuage.","solution":true,"explication":"Cloud = nuage, services informatiques délocalisés"},
+        {"type":"qcm","text":"'Eco-friendly' signifie :","choices":["ami de l'écho","respectueux de l'environnement","économique","écologique"],"solution":1,"explication":"Eco-friendly = écologique, sans danger pour l'environnement"}
+      ]
+    }
+  ]
+}
