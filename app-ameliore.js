@@ -59,17 +59,25 @@ const STI2D_SUBJECTS = {
 function showSection(sectionId) {
     console.log('🔄 Tentative d\'affichage de la section:', sectionId);
     
+    // Si on affiche une section autre que auth, montrer appContent
+    if (sectionId !== 'authSection') {
+        document.getElementById('appContent').classList.remove('hidden');
+        document.getElementById('authSection').classList.add('hidden');
+    } else {
+        document.getElementById('appContent').classList.add('hidden');
+        document.getElementById('authSection').classList.remove('hidden');
+        return; // Sortir tôt pour authSection
+    }
+    
     // Masquer toutes les sections principales
     const allSections = [
-        'authSection', 'dashboard', 'quizSection', 'ficheSection', 
-        'aiSection', 'profileSection', 'historySection'
+        'dashboard', 'quiz-select', 'fiches', 'quiz-ai', 'history'
     ];
     
     allSections.forEach(id => {
         const section = document.getElementById(id);
         if (section) {
             section.classList.add('hidden');
-            console.log('✅ Section masquée:', id);
         }
     });
     
@@ -78,21 +86,10 @@ function showSection(sectionId) {
     if (targetSection) {
         targetSection.classList.remove('hidden');
         console.log('✅ Section affichée:', sectionId);
-        
-        // Mettre à jour la navigation si applicable
-        document.querySelectorAll('.nav-btn').forEach(btn => {
-            btn.classList.remove('active');
-            if (btn.getAttribute('data-section') === sectionId || 
-                btn.getAttribute('onclick')?.includes(sectionId)) {
-                btn.classList.add('active');
-            }
-        });
     } else {
         console.error('❌ Section non trouvée:', sectionId);
-        console.log('📋 Sections disponibles:', allSections.filter(id => document.getElementById(id)));
     }
 }
-
 // Mode sombre/clair amélioré avec animation
 function switchTheme(force) {
     if (force) theme = force;
@@ -734,15 +731,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
         
         // Formulaire d'inscription
-        const signupForm = document.getElementById('signupForm');
+        const signupForm = document.getElementById('registerForm');
         if (signupForm) {
             signupForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
-                const email = document.getElementById('signupEmail').value;
-                const password = document.getElementById('signupPassword').value;
-                const specialty = document.getElementById('signupSpecialty').value;
-                const lv1 = document.getElementById('signupLv1').value;
-                const lv2 = document.getElementById('signupLv2').value;
+                const email = document.getElementById('registerEmail').value;
+                const password = document.getElementById('registerPassword').value;
+                const specialty = document.getElementById('registerSpeciality').value;
+                const lv1 = document.getElementById('registerLv1').value;
+                const lv2 = document.getElementById('registerLv2').value;
+
                 
                 try {
                     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
@@ -859,7 +857,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         setTimeout(() => {
             hideLoadingScreen();
         }, 8000);
-        
+        // Navigation buttons
+        document.getElementById('navDashboard')?.addEventListener('click', () => showSection('dashboard'));
+        document.getElementById('navQuiz')?.addEventListener('click', () => showSection('quiz-select'));
+        document.getElementById('navFiches')?.addEventListener('click', () => showSection('fiches'));
+        document.getElementById('navAI')?.addEventListener('click', () => showSection('quiz-ai'));
+        document.getElementById('navHistory')?.addEventListener('click', () => showSection('history'));
+
         console.log('✅ Learni STI2D - Initialisé avec succès');
         
     } catch (error) {
