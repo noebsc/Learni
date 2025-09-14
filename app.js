@@ -312,16 +312,14 @@ async function generateAIQuiz(e) {
     const mat = document.getElementById('aiQuizMat').value;
     const theme = document.getElementById('aiQuizTheme').value;
     const nb = document.getElementById('aiQuizNb').value;
-
     toast('Génération du quiz IA en cours...');
 
-    // Prompt formaté : pas de ```
+    // Prompt formaté : pas de réponse parasite
     const prompt = `Génère un quiz scolaire niveau BAC STI2D à propos du programme scolaire français le plus récent pour la matière ${mat}, thème "${theme}". 
-Donne exactement ${nb} questions, au format JSON strict (tableau, pas d'objet racine), chaque question doit contenir les champs : "type":"qcm", "text" (énoncé), "choices" (tableau de 4 réponses), "solution" (index), et "explication" (phrase). Réponds uniquement par le tableau JSON, aucune autre phrase ni explication.`
+Donne exactement ${nb} questions, au format JSON strict (tableau, pas d'objet racine), chaque question doit contenir les champs : "type":"qcm", "text" (énoncé), "choices" (tableau de 4 réponses), "solution" (index), et "explication" (phrase). Réponds uniquement par le tableau JSON, aucune autre phrase ni explication.`;
 
     try {
         const url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=AIzaSyDOeHF6la3IFedlVC4-NM0Yjgj737AIAWo";
-
         const resp = await fetch(url, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -331,7 +329,6 @@ Donne exactement ${nb} questions, au format JSON strict (tableau, pas d'objet ra
                 ]
             })
         });
-
         if (!resp.ok) {
             toast(`Erreur Gemini API : ${resp.status}`, 'error');
             return;
@@ -341,8 +338,6 @@ Donne exactement ${nb} questions, au format JSON strict (tableau, pas d'objet ra
         if (raw && raw.trim().startsWith("```
             raw = raw.replace(/```json/g, "").replace(/```
         }
-
-
         let quizAI = [];
         try {
             quizAI = JSON.parse(raw);
@@ -351,14 +346,13 @@ Donne exactement ${nb} questions, au format JSON strict (tableau, pas d'objet ra
             // debug : console.log("Texte IA : ", raw);
             return;
         }
-
         displayAIQuiz(quizAI);
-
     } catch (err) {
         toast('Erreur appel Gemini API', 'error');
         console.error(err);
     }
 }
+
 
 // Affiche quiz AI, permet correction locale immédiate
 function displayAIQuiz(quizAI) {
