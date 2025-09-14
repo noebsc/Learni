@@ -527,7 +527,7 @@ function initAIQuiz() {
 async function callGroqAPI(subject, theme, difficulty, questionCount) {
     try {
         // Vérification de la clé API
-        if (!GROQ_API_KEY || GROQ_API_KEY === "gsk_VOTRE_CLE_ICI") {
+        if (!GROQ_API_KEY || GROQ_API_KEY === "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") {
             throw new Error(`⚠️ Clé API Groq non configurée.
 
 Pour obtenir votre clé GRATUITE :
