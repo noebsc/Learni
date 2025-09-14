@@ -1,25 +1,26 @@
 // firebase-ameliore.js - Configuration Firebase améliorée
+
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
 
-import { 
-    getAuth, 
-    signInWithEmailAndPassword, 
-    createUserWithEmailAndPassword, 
-    signOut, 
-    onAuthStateChanged, 
+import {
+    getAuth,
+    signInWithEmailAndPassword,
+    createUserWithEmailAndPassword,
+    signOut,
+    onAuthStateChanged,
     updateProfile,
     GoogleAuthProvider,
     signInWithPopup
 } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
 
-import { 
-    getFirestore, 
-    doc, 
-    setDoc, 
-    getDoc, 
-    updateDoc, 
-    collection, 
-    getDocs, 
+import {
+    getFirestore,
+    doc,
+    setDoc,
+    getDoc,
+    updateDoc,
+    collection,
+    getDocs,
     onSnapshot,
     addDoc,
     query,
@@ -54,32 +55,65 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const storage = getStorage(app);
-const analytics = null;
-const logEvent = () => {}; // Fonction vide
+
+// Analytics avec gestion d'erreur pour éviter les problèmes en développement
+let analytics = null;
+try {
+    // Vérifier si on est dans un environnement de production
+    if (typeof window !== 'undefined' && window.location.hostname !== 'localhost') {
+        import("https://www.gstatic.com/firebasejs/10.12.4/firebase-analytics.js")
+            .then(({ getAnalytics, logEvent: firebaseLogEvent }) => {
+                analytics = getAnalytics(app);
+                console.log('📊 Firebase Analytics initialisé');
+                
+                // Exporter logEvent pour utilisation dans l'app
+                window.logEvent = firebaseLogEvent;
+            })
+            .catch(error => {
+                console.warn('⚠️ Analytics non disponible:', error.message);
+            });
+    } else {
+        console.log('📊 Analytics désactivé en développement');
+    }
+} catch (error) {
+    console.warn('⚠️ Erreur initialisation Analytics:', error.message);
+}
+
+// Fonction logEvent de secours pour éviter les erreurs
+const logEvent = (...args) => {
+    if (analytics && window.logEvent) {
+        try {
+            window.logEvent(analytics, ...args);
+        } catch (error) {
+            console.warn('Analytics event failed:', error);
+        }
+    }
+};
+
 // Fournisseur Google pour l'authentification sociale
 const googleProvider = new GoogleAuthProvider();
 
 // Export des services Firebase
-export { 
-    app, 
-    auth, 
-    db, 
-    analytics, 
+export {
+    app,
+    auth,
+    db,
+    analytics,
     storage,
-    signInWithEmailAndPassword, 
-    createUserWithEmailAndPassword, 
-    signOut, 
+    signInWithEmailAndPassword,
+    createUserWithEmailAndPassword,
+    signOut,
     onAuthStateChanged,
     updateProfile,
     googleProvider,
     signInWithPopup,
-    doc, 
-    setDoc, 
-    getDoc, 
-    updateDoc, 
-    collection, 
-    getDocs, 
-    onSnapshot, 
+    doc,
+    setDoc,
+    getDoc,
+    updateDoc,
+    collection,
+    getDocs,
+    onSnapshot,
     logEvent,
     addDoc,
     query,
