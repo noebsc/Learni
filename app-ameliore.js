@@ -676,148 +676,60 @@ function startQuizBySubject(subject) {
 // ≡ --- ÉVÉNEMENTS PRINCIPAUX --- //
 
 // Initialisation de l'application
-document.addEventListener('DOMContentLoaded', async function() {
+// ≡ --- INITIALISATION PRINCIPALE --- //
+document.addEventListener('DOMContentLoaded', async () => {
     console.log('🚀 Learni STI2D - Initialisation...');
-
-    // Charger le thème sauvegardé
-    const savedTheme = localStorage.getItem('theme') || 'dark';
-    switchTheme(savedTheme);
-
-    // Charger les quiz
-    await loadQuizzes();
-
-    // Écouter les changements d'authentification
-    onAuthStateChanged(auth, async (user) => {
-        if (user) {
-            await fetchAndSyncUserData(user);
-            showSection('dashboard');
-            document.getElementById('authSection')?.classList.add('hidden');
-            document.getElementById('appContent')?.classList.remove('hidden');
-        } else {
-            currentUser = null;
-            showSection('auth');
-            document.getElementById('authSection')?.classList.remove('hidden');
-            document.getElementById('appContent')?.classList.add('hidden');
-        }
-    });
-
-    // Gestionnaires d'événements pour l'authentification
-    document.getElementById('loginForm')?.addEventListener('submit', async function(e) {
-        e.preventDefault();
-        const email = document.getElementById('loginEmail').value;
-        const password = document.getElementById('loginPassword').value;
-
-        try {
-            await signInWithEmailAndPassword(auth, email, password);
-            toast('Connexion réussie !', 'success');
-        } catch (error) {
-            console.error('Erreur connexion:', error);
-            toast('Erreur de connexion: ' + error.message, 'error');
-        }
-    });
-
-    document.getElementById('registerForm')?.addEventListener('submit', async function(e) {
-        e.preventDefault();
-        const email = document.getElementById('registerEmail').value;
-        const password = document.getElementById('registerPassword').value;
-        const specialitySelect = document.getElementById('registerSpeciality').value;
-        const lv1Select = document.getElementById('registerLv1').value;
-        const lv2Select = document.getElementById('registerLv2').value;
-
-        try {
-            const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-            
-            // Sauvegarder les préférences utilisateur
-            await setDoc(doc(db, 'users', userCredential.user.uid), {
-                email: email,
-                speciality: specialitySelect,
-                lv1: lv1Select,
-                lv2: lv2Select,
-                createdAt: new Date().toISOString()
-            });
-
-            toast('Compte créé avec succès !', 'success');
-        } catch (error) {
-            console.error('Erreur inscription:', error);
-            toast('Erreur d\'inscription: ' + error.message, 'error');
-        }
-    });
-
-    // Gestionnaires pour les onglets d'authentification
-    document.querySelectorAll('.auth-tab').forEach(tab => {
-        tab.addEventListener('click', function() {
-            const target = this.dataset.tab;
-            
-            // Mettre à jour les onglets
-            document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
-            this.classList.add('active');
-            
-            // Mettre à jour les formulaires
-            document.querySelectorAll('.auth-form').forEach(f => f.classList.remove('active'));
-            document.getElementById(target + 'Form').classList.add('active');
-        });
-    });
-
-    // Gestionnaire pour la génération de quiz IA
-    document.getElementById('aiQuizForm')?.addEventListener('submit', async function(e) {
-        e.preventDefault();
-        
-        const subject = document.getElementById('aiSubject').value;
-        const theme = document.getElementById('aiTheme').value;
-        const difficulty = document.getElementById('aiDifficulty').value;
-        const questionCount = document.getElementById('aiQuestionCount').value;
-
-        if (!subject || !theme) {
-            toast('Veuillez sélectionner un sujet et un thème', 'warning');
-            return;
-        }
-
-        await generateAIQuiz(subject, theme, difficulty, questionCount);
-    });
-
-    // Gestionnaires pour les boutons de navigation
-    document.getElementById('navDashboard')?.addEventListener('click', () => showSection('dashboard'));
-    document.getElementById('navQuiz')?.addEventListener('click', () => {
-        renderQuizSelect();
-        showSection('quiz-select');
-    });
-    document.getElementById('navFiches')?.addEventListener('click', () => {
-        renderAllFiches();
-        showSection('fiches');
-    });
-    document.getElementById('navAI')?.addEventListener('click', () => showSection('quiz-ai'));
-    document.getElementById('navHistory')?.addEventListener('click', () => {
-        renderQuizHistory();
-        showSection('history');
-    });
-
-    // Gestionnaire de déconnexion
-    document.getElementById('logoutBtn')?.addEventListener('click', async function() {
-        try {
-            await signOut(auth);
-            toast('Déconnexion réussie', 'success');
-        } catch (error) {
-            console.error('Erreur déconnexion:', error);
-            toast('Erreur de déconnexion', 'error');
-        }
-    });
-
-    // Gestionnaire pour le changement de thème
-    document.getElementById('themeSwitcher')?.addEventListener('click', () => switchTheme());
-
-    // Gestionnaire pour la difficulté du quiz IA
-    const difficultySlider = document.getElementById('aiDifficulty');
-    const difficultyDisplay = document.getElementById('difficultyDisplay');
     
-    if (difficultySlider && difficultyDisplay) {
-        difficultySlider.addEventListener('input', function() {
-            const levels = ['Très facile', 'Facile', 'Moyen', 'Difficile', 'Très difficile'];
-            difficultyDisplay.textContent = `Difficulté: ${levels[this.value - 1]}`;
+    try {
+        // Initialiser le thème
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        switchTheme(savedTheme);
+        
+        // Charger les quiz
+        await loadQuizzes();
+        
+        // Écouter les changements d'authentification
+        onAuthStateChanged(auth, async (user) => {
+            try {
+                if (user) {
+                    await fetchAndSyncUserData(user);
+                    showSection('dashboard');
+                } else {
+                    showSection('authSection');
+                }
+            } catch (error) {
+                console.error('Erreur lors de la gestion utilisateur:', error);
+                showSection('authSection');
+            } finally {
+                // Masquer l'écran de chargement dans tous les cas
+                hideLoadingScreen();
+            }
         });
+        
+        // Forcer le masquage après 5 secondes maximum
+        setTimeout(() => {
+            hideLoadingScreen();
+        }, 5000);
+        
+        console.log('✅ Learni STI2D - Initialisé avec succès');
+        
+    } catch (error) {
+        console.error('Erreur d\'initialisation:', error);
+        hideLoadingScreen();
+        showSection('authSection');
     }
-
-    console.log('✅ Learni STI2D - Initialisé avec succès');
 });
+
+// Fonction pour masquer l'écran de chargement
+function hideLoadingScreen() {
+    const loadingScreen = document.getElementById('loadingScreen');
+    if (loadingScreen) {
+        loadingScreen.style.opacity = '0';
+        setTimeout(() => {
+            loadingScreen.style.display = 'none';
+        }, 300);
+    }
+}
 
 // Fonctions globales pour les boutons inline
 window.showSection = showSection;
