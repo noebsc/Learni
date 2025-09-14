@@ -1,4 +1,4 @@
-/* ========== app-ameliore.js - Learni STI2D COMPLET CORRIGÉ AVEC API GRATUITE ========== */
+/* ========== app-ameliore.js - Learni STI2D COMPLET AVEC GROQ IA GRATUITE ========== */
 
 // Import Firebase
 import { 
@@ -27,12 +27,9 @@ let currentQuizIndex = 0;
 let userAnswers = [];
 let quizStartTime = null;
 
-// 🔧 Configuration API Hugging Face GRATUITE - Créez votre clé sur https://huggingface.co/settings/tokens
-const HUGGINGFACE_API_KEY = "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"; // GRATUIT - Remplacez par votre clé HF
-const HUGGINGFACE_API_URL = "https://api-inference.huggingface.co/models/microsoft/DialoGPT-medium";
-
-// Alternative avec modèle Mistral (plus performant)
-const MISTRAL_MODEL_URL = "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.1";
+// 🚀 Configuration GROQ API GRATUITE - Créez votre clé sur https://console.groq.com/keys
+const GROQ_API_KEY = "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"; // GRATUIT - Remplacez par votre clé Groq
+const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
 
 // Sujets STI2D 2025 complets
 const STI2D_SUBJECTS = {
@@ -505,7 +502,7 @@ function getSubjectIcon(subject) {
     return icons[subject] || '📚';
 }
 
-// ≡ --- GÉNÉRATION QUIZ IA AVEC HUGGING FACE (GRATUIT) ---
+// ≡ --- GÉNÉRATION QUIZ IA AVEC GROQ (GRATUIT ET RAPIDE) ---
 
 function initAIQuiz() {
     // Initialiser les éléments du formulaire IA
@@ -526,245 +523,195 @@ function initAIQuiz() {
     }
 }
 
-// 🆓 NOUVELLE API HUGGING FACE GRATUITE
-async function callHuggingFaceAPI(subject, theme, difficulty, questionCount) {
+// 🚀 GROQ API - GRATUITE ET TRÈS RAPIDE
+async function callGroqAPI(subject, theme, difficulty, questionCount) {
     try {
         // Vérification de la clé API
-        if (!HUGGINGFACE_API_KEY || HUGGINGFACE_API_KEY === "hf_VOTRE_CLE_ICI") {
-            throw new Error('⚠️ Clé API Hugging Face non configurée.\n\nPour obtenir votre clé GRATUITE :\n1. Allez sur https://huggingface.co/settings/tokens\n2. Créez un compte (gratuit)\n3. Générez un token\n4. Remplacez "hf_VOTRE_CLE_ICI" par votre token dans app-ameliore.js ligne 28');
+        if (!GROQ_API_KEY || GROQ_API_KEY === "gsk_VOTRE_CLE_ICI") {
+            throw new Error(`⚠️ Clé API Groq non configurée.
+
+Pour obtenir votre clé GRATUITE :
+1. Allez sur https://console.groq.com/keys
+2. Créez un compte (gratuit)
+3. Cliquez "Create API Key"
+4. Copiez la clé (commence par "gsk_")
+5. Remplacez "gsk_VOTRE_CLE_ICI" dans app-ameliore.js ligne 28
+
+GROQ est 100% gratuit avec des limites très généreuses !`);
         }
 
-        console.log(`🤖 Génération quiz Hugging Face: ${subject}, thème: "${theme}", difficulté ${difficulty}/5`);
+        console.log(`🚀 Génération quiz Groq: ${subject}, thème: "${theme}", difficulté ${difficulty}/5`);
 
-        // Prompt optimisé pour Hugging Face
-        const prompt = `Créer un quiz BAC STI2D ${questionCount} questions ${subject} ${theme ? 'thème ' + theme : ''} difficulté ${difficulty}/5.
+        // Prompt optimisé pour Groq
+        const systemPrompt = `Tu es un professeur expert du programme français BAC STI2D 2025. Tu dois créer des quiz de qualité académique.
 
-Répondre en JSON strict:
+RÈGLES STRICTES :
+- Programme BAC STI2D 2025 français officiel uniquement
+- Questions de niveau terminale approprié
+- 70% QCM (4 choix), 30% Vrai/Faux
+- Explications pédagogiques détaillées (minimum 25 mots)
+- Respecter exactement le format JSON demandé
+- Aucun texte avant ou après le JSON`;
+
+        const userPrompt = `Génère exactement ${questionCount} questions de ${subject}${theme ? ` sur le thème "${theme}"` : ''} pour des élèves de Terminale STI2D, niveau de difficulté ${difficulty}/5.
+
+FORMAT DE RÉPONSE OBLIGATOIRE (JSON uniquement) :
 {
-  "questions": [
-    {
-      "type": "qcm",
-      "text": "Question claire?",
-      "choices": ["A", "B", "C", "D"],
-      "solution": 0,
-      "explication": "Explication détaillée"
-    },
-    {
-      "type": "tf",
-      "text": "Affirmation",
-      "solution": true,
-      "explication": "Justification"
-    }
-  ]
+    "questions": [
+        {
+            "type": "qcm",
+            "text": "Question précise et claire ?",
+            "choices": ["Réponse A", "Réponse B", "Réponse C", "Réponse D"],
+            "solution": 0,
+            "explication": "Explication pédagogique détaillée de la bonne réponse avec justification complète."
+        },
+        {
+            "type": "tf",
+            "text": "Affirmation précise à vérifier.",
+            "solution": true,
+            "explication": "Justification complète de pourquoi cette affirmation est vraie ou fausse."
+        }
+    ]
 }
 
-Programme BAC STI2D 2025 français. 70% QCM, 30% vrai/faux. Explications 25+ mots.`;
+Génère ${questionCount} questions variées et pertinentes pour le BAC STI2D 2025.`;
 
-        // Essai avec modèle Mistral (meilleur pour les instructions)
-        let response = await fetch(MISTRAL_MODEL_URL, {
+        const response = await fetch(GROQ_API_URL, {
             method: 'POST',
             headers: {
-                'Authorization': `Bearer ${HUGGINGFACE_API_KEY}`,
+                'Authorization': `Bearer ${GROQ_API_KEY}`,
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                inputs: prompt,
-                parameters: {
-                    max_new_tokens: 1500,
-                    temperature: 0.7,
-                    top_p: 0.9,
-                    do_sample: true
-                },
-                options: {
-                    wait_for_model: true
-                }
+                model: "llama-3.1-70b-versatile", // Modèle très performant de Groq
+                messages: [
+                    {
+                        role: "system",
+                        content: systemPrompt
+                    },
+                    {
+                        role: "user",
+                        content: userPrompt
+                    }
+                ],
+                max_tokens: 2048,
+                temperature: 0.7,
+                top_p: 0.9,
+                stream: false
             })
         });
 
-        // Si Mistral échoue, essayer avec DialoGPT
         if (!response.ok) {
-            console.log('🔄 Tentative avec modèle alternatif...');
-            response = await fetch(HUGGINGFACE_API_URL, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${HUGGINGFACE_API_KEY}`,
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    inputs: prompt,
-                    parameters: {
-                        max_length: 1500,
-                        temperature: 0.7,
-                        top_p: 0.9
-                    },
-                    options: {
-                        wait_for_model: true
-                    }
-                })
-            });
-        }
-
-        if (!response.ok) {
-            const errorText = await response.text();
-            console.error('❌ Erreur API Hugging Face:', response.status, errorText);
-            throw new Error(`Erreur API Hugging Face: ${response.status} - ${response.statusText}`);
+            const errorData = await response.text();
+            console.error('❌ Erreur API Groq:', response.status, errorData);
+            
+            let errorMessage = `Erreur API Groq: ${response.status}`;
+            if (response.status === 401) {
+                errorMessage = 'Clé API Groq invalide. Vérifiez votre clé dans le fichier app-ameliore.js';
+            } else if (response.status === 429) {
+                errorMessage = 'Limite de requêtes Groq atteinte. Réessayez dans quelques minutes.';
+            }
+            
+            throw new Error(errorMessage);
         }
 
         const data = await response.json();
-        let aiResponse;
-        
-        // Extraire la réponse selon le format de l'API
-        if (Array.isArray(data)) {
-            aiResponse = data[0]?.generated_text || data[0]?.text || '';
-        } else {
-            aiResponse = data.generated_text || data.text || data.output || '';
-        }
+        let aiResponse = data.choices?.[0]?.message?.content;
 
         if (!aiResponse) {
-            console.error('❌ Réponse vide de Hugging Face:', data);
-            throw new Error('Réponse vide de l\'IA Hugging Face');
+            console.error('❌ Réponse vide de Groq:', data);
+            throw new Error('Réponse vide de l\'IA Groq');
         }
 
-        console.log('🤖 Réponse brute Hugging Face:', aiResponse);
+        console.log('🤖 Réponse brute Groq:', aiResponse);
 
-        // Nettoyage de la réponse
-        aiResponse = aiResponse.replace(prompt, '').trim(); // Retirer le prompt original
+        // 🔧 NETTOYAGE ROBUSTE DE LA RÉPONSE GROQ
+        aiResponse = aiResponse.trim();
         
-        // Supprimer les backticks markdown
+        // Supprimer tous les types de backticks markdown
         aiResponse = aiResponse.replace(/```json\s*/gi, '');
         aiResponse = aiResponse.replace(/```\s*/g, '');
         
-        // Extraire le JSON
+        // Extraire le JSON entre { et }
         const firstBrace = aiResponse.indexOf('{');
         const lastBrace = aiResponse.lastIndexOf('}');
         
         if (firstBrace === -1 || lastBrace === -1) {
-            // Si pas de JSON détecté, générer un quiz de fallback
-            console.log('⚠️ Pas de JSON détecté, génération de quiz de secours...');
-            return generateFallbackQuiz(subject, theme, questionCount);
+            console.error('💾 Réponse problématique:', aiResponse);
+            throw new Error('Réponse IA mal formatée: pas de JSON détecté');
         }
         
         aiResponse = aiResponse.substring(firstBrace, lastBrace + 1);
         
         console.log('🧹 JSON extrait:', aiResponse);
 
-        // Parsing JSON
+        // Parsing et validation JSON stricte
         let quizData;
         try {
             quizData = JSON.parse(aiResponse);
         } catch (parseError) {
             console.error('❌ Erreur parsing JSON:', parseError);
-            console.log('🔄 Génération de quiz de secours...');
-            return generateFallbackQuiz(subject, theme, questionCount);
+            console.error('💾 JSON problématique:', aiResponse);
+            throw new Error('JSON invalide généré par Groq - Format incorrect');
         }
         
-        // Validation
+        // Validation structure complète
+        if (!quizData || typeof quizData !== 'object') {
+            throw new Error('Réponse Groq invalide: pas un objet JSON');
+        }
+        
         if (!quizData.questions || !Array.isArray(quizData.questions)) {
-            console.log('🔄 Structure invalide, génération de quiz de secours...');
-            return generateFallbackQuiz(subject, theme, questionCount);
+            throw new Error('Structure JSON invalide: propriété questions manquante ou incorrecte');
         }
 
         if (quizData.questions.length === 0) {
-            return generateFallbackQuiz(subject, theme, questionCount);
+            throw new Error('Aucune question générée par Groq');
         }
 
-        // Validation et nettoyage des questions
-        const validQuestions = [];
-        for (let question of quizData.questions) {
-            if (question.type && question.text && question.explication) {
-                if (question.type === 'qcm' && question.choices && question.solution !== undefined) {
-                    validQuestions.push(question);
-                } else if (question.type === 'tf' && typeof question.solution === 'boolean') {
-                    validQuestions.push(question);
+        if (quizData.questions.length !== questionCount) {
+            console.warn(`⚠️ Nombre de questions généré (${quizData.questions.length}) différent de demandé (${questionCount})`);
+        }
+
+        // Validation détaillée de chaque question
+        for (let i = 0; i < quizData.questions.length; i++) {
+            const question = quizData.questions[i];
+            
+            if (!question || typeof question !== 'object') {
+                throw new Error(`Question ${i+1} invalide: pas un objet`);
+            }
+            
+            if (!question.type || !question.text || !question.explication) {
+                throw new Error(`Question ${i+1} mal formatée: champs obligatoires manquants (type, text, explication)`);
+            }
+            
+            if (question.type === 'qcm') {
+                if (!question.choices || !Array.isArray(question.choices) || 
+                    question.choices.length < 2 || typeof question.solution !== 'number') {
+                    throw new Error(`QCM ${i+1} mal formaté: choices invalides ou solution manquante`);
                 }
+                if (question.solution < 0 || question.solution >= question.choices.length) {
+                    throw new Error(`Solution QCM ${i+1} invalide: index ${question.solution} hors limites`);
+                }
+            } else if (question.type === 'tf') {
+                if (typeof question.solution !== 'boolean') {
+                    throw new Error(`Solution Vrai/Faux ${i+1} invalide: doit être boolean, reçu ${typeof question.solution}`);
+                }
+            } else {
+                throw new Error(`Type de question ${i+1} invalide: "${question.type}" (doit être "qcm" ou "tf")`);
+            }
+
+            if (typeof question.explication !== 'string' || question.explication.length < 15) {
+                throw new Error(`Explication question ${i+1} trop courte ou invalide`);
             }
         }
 
-        if (validQuestions.length === 0) {
-            return generateFallbackQuiz(subject, theme, questionCount);
-        }
-
-        console.log(`✅ Quiz Hugging Face validé: ${validQuestions.length} questions`);
-        return { questions: validQuestions };
+        console.log(`✅ Quiz Groq validé avec succès: ${quizData.questions.length} questions générées`);
+        return quizData;
 
     } catch (error) {
-        console.error('❌ Erreur Hugging Face complète:', error);
-        
-        // En cas d'erreur, retourner un quiz de secours
-        if (error.message.includes('Clé API')) {
-            throw error; // Remonter l'erreur de configuration
-        } else {
-            console.log('🔄 Génération de quiz de secours après erreur...');
-            return generateFallbackQuiz(subject, theme, questionCount);
-        }
+        console.error('❌ Erreur complète génération quiz Groq:', error.message);
+        throw error; // Remonter l'erreur avec son message original
     }
-}
-
-// Fonction de secours qui génère un quiz basique
-function generateFallbackQuiz(subject, theme, questionCount) {
-    console.log('📚 Génération quiz de secours pour', subject);
-    
-    const fallbackQuestions = {
-        "Français": [
-            {
-                type: "qcm",
-                text: "Qui a écrit 'Les Fleurs du Mal' ?",
-                choices: ["Baudelaire", "Verlaine", "Rimbaud", "Mallarmé"],
-                solution: 0,
-                explication: "Charles Baudelaire est l'auteur des 'Fleurs du Mal' (1857), recueil emblématique du symbolisme français."
-            },
-            {
-                type: "tf",
-                text: "Le romantisme privilégie la raison sur l'émotion.",
-                solution: false,
-                explication: "Le romantisme privilégie au contraire l'émotion, les sentiments et la passion, en réaction au classicisme rationnel."
-            }
-        ],
-        "Mathématiques": [
-            {
-                type: "qcm",
-                text: "Quelle est la dérivée de x² ?",
-                choices: ["x", "2x", "x³", "2x²"],
-                solution: 1,
-                explication: "La dérivée de x² est 2x selon la règle de dérivation des puissances."
-            },
-            {
-                type: "tf", 
-                text: "Une fonction continue est toujours dérivable.",
-                solution: false,
-                explication: "Une fonction peut être continue sans être dérivable (exemple : valeur absolue en 0)."
-            }
-        ],
-        "Physique-Chimie": [
-            {
-                type: "qcm",
-                text: "La loi d'Ohm s'écrit :",
-                choices: ["U = R + I", "U = R × I", "U = R / I", "U = I / R"],
-                solution: 1,
-                explication: "La loi d'Ohm établit que la tension U est égale à la résistance R multipliée par l'intensité I."
-            },
-            {
-                type: "tf",
-                text: "L'énergie se conserve toujours dans un système isolé.",
-                solution: true,
-                explication: "Le principe de conservation de l'énergie est une loi fondamentale de la physique."
-            }
-        ]
-    };
-
-    const baseQuestions = fallbackQuestions[subject] || fallbackQuestions["Français"];
-    const questions = [];
-    
-    // Répéter les questions de base pour atteindre le nombre souhaité
-    for (let i = 0; i < questionCount; i++) {
-        const baseQuestion = baseQuestions[i % baseQuestions.length];
-        questions.push({
-            ...baseQuestion,
-            text: `${baseQuestion.text} ${theme ? `(${theme})` : ''}`
-        });
-    }
-
-    return { questions };
 }
 
 async function generateAIQuiz() {
@@ -798,19 +745,19 @@ async function generateAIQuiz() {
         if (quizDisplay) quizDisplay.classList.add('hidden');
         if (generateBtn) {
             generateBtn.disabled = true;
-            generateBtn.textContent = '🤖 Génération par IA...';
+            generateBtn.textContent = '🚀 Génération par Groq IA...';
         }
 
-        // Générer le quiz avec Hugging Face
-        const quizData = await callHuggingFaceAPI(subject, theme, difficulty, questionCount);
+        // Générer le quiz avec Groq
+        const quizData = await callGroqAPI(subject, theme, difficulty, questionCount);
 
         // Créer l'objet quiz complet
         const aiQuiz = {
             titre: `Quiz IA - ${subject}${theme ? ` (${theme})` : ''}`,
             niveau: 'Terminale STI2D',
             themes: theme ? [theme] : [],
-            keywords: ['IA', 'Hugging Face', subject],
-            memo: `Quiz généré par IA Hugging Face - Difficulté ${difficulty}/5 - ${quizData.questions.length} questions`,
+            keywords: ['IA', 'Groq', subject],
+            memo: `Quiz généré par IA Groq - Difficulté ${difficulty}/5 - ${quizData.questions.length} questions`,
             questions: quizData.questions,
             isAI: true
         };
@@ -821,7 +768,7 @@ async function generateAIQuiz() {
         // Démarrer le quiz
         startQuiz(`${subject} (IA)`, aiQuiz);
         
-        toast(`✅ Quiz IA généré ! ${quizData.questions.length} questions créées par Hugging Face.`, 'success');
+        toast(`✅ Quiz IA généré ! ${quizData.questions.length} questions créées par Groq.`, 'success');
 
     } catch (error) {
         console.error('❌ Erreur génération quiz IA:', error);
@@ -833,12 +780,16 @@ async function generateAIQuiz() {
         if (error.message.includes('Clé API')) {
             errorMessage = error.message; // Message détaillé pour la configuration
         } else if (error.message.includes('API')) {
-            errorMessage = '🌐 Erreur de connexion à Hugging Face. Vérifiez votre connexion internet.';
-        } else {
-            errorMessage = '🤖 Erreur IA. Un quiz de secours a été généré.';
+            errorMessage = '🌐 Erreur de connexion à Groq. Vérifiez votre connexion internet et votre clé API.';
+        } else if (error.message.includes('JSON')) {
+            errorMessage = '🔧 Erreur de format de réponse IA. Réessayez avec des paramètres différents.';
+        } else if (error.message.includes('mal formatée')) {
+            errorMessage = '🤖 Groq a généré une réponse incorrecte. Veuillez réessayer.';
+        } else if (error.message.includes('limite')) {
+            errorMessage = '⏱️ Limite de requêtes atteinte. Réessayez dans quelques minutes.';
         }
         
-        toast(errorMessage, 'error', 10000); // Plus long pour lire les instructions
+        toast(errorMessage, 'error', 12000); // Plus long pour lire les instructions
         
     } finally {
         if (generateBtn) {
@@ -1210,14 +1161,14 @@ function renderHistory() {
         html += `
             <div class="history-item ${scoreClass}">
                 <div class="history-header">
-                    <h4>${quiz.subject}${quiz.isAI ? ' 🤖' : ''}</h4>
+                    <h4>${quiz.subject}${quiz.isAI ? ' 🚀' : ''}</h4>
                     <span class="history-score">${quiz.score}%</span>
                 </div>
                 <div class="history-details">
                     <span>📅 ${date}</span>
                     <span>✅ ${quiz.correctAnswers}/${quiz.totalQuestions}</span>
                     <span>⏱️ ${duration}</span>
-                    ${quiz.isAI ? '<span>🤖 Généré par IA Hugging Face</span>' : ''}
+                    ${quiz.isAI ? '<span>🚀 Généré par Groq IA</span>' : ''}
                 </div>
             </div>
         `;
@@ -1427,7 +1378,7 @@ window.restartCurrentQuiz = restartCurrentQuiz;
 // ≡ --- INITIALISATION ---
 
 async function initApp() {
-    console.log('🚀 Initialisation de Learni STI2D avec Hugging Face...');
+    console.log('🚀 Initialisation de Learni STI2D avec Groq...');
     
     try {
         // Charger les quiz
@@ -1472,4 +1423,4 @@ document.addEventListener('DOMContentLoaded', () => {
     initApp();
 });
 
-console.log('✅ Learni STI2D - Version Hugging Face GRATUITE - Fichier JavaScript chargé - Version 2.2.0');
+console.log('✅ Learni STI2D - Version GROQ IA GRATUITE - Fichier JavaScript chargé - Version 3.0.0');
