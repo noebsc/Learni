@@ -6,7 +6,7 @@ import {
     signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged,
     doc, setDoc, getDoc, updateDoc, collection, getDocs, onSnapshot, logEvent,
     addDoc, query, orderBy, limit, where
-} from './firebase.js';
+} from './firebase-ameliore.js';
 
 // ≡ GLOBALS AMÉLIORÉS
 let currentUser = null;
