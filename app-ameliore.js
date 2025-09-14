@@ -28,7 +28,7 @@ let userAnswers = [];
 let quizStartTime = null;
 
 // 🔧 Configuration API Hugging Face GRATUITE - Créez votre clé sur https://huggingface.co/settings/tokens
-const HUGGINGFACE_API_KEY = "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"; // GRATUIT - Remplacez par votre clé HF
+const HUGGINGFACE_API_KEY = "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"; // GRATUIT - Remplacez par votre clé HF
 const HUGGINGFACE_API_URL = "https://api-inference.huggingface.co/models/microsoft/DialoGPT-medium";
 
 // Alternative avec modèle Mistral (plus performant)
