@@ -573,7 +573,7 @@ Génère ${questionCount} questions diversifiées et progressives.`;
 
         // Requête API Groq avec paramètres optimisés 2025
         const requestBody = {
-            model: "llama-3.1-70b-versatile", // Modèle le plus performant disponible
+            model: "llama-3.3-70b-versatile",
             messages: [
                 { role: "system", content: systemPrompt },
                 { role: "user", content: userPrompt }
