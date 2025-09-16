@@ -1,331 +1,360 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
+<html lang="fr"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Learni - Révisions BAC STI2D</title>
-    <meta name="description" content="Application de révisions pour le BAC STI2D avec quiz interactifs et IA">
+    <title>Learni STI2D - Assistant révision BAC 2025</title>
+    <meta name="description" content="Assistant intelligent pour réviser le BAC STI2D 2025. Quiz, IA, fiches, suivi de progression.">
     
-    <!-- PWA Meta tags -->
-    <meta name="theme-color" content="#667eea">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Learni STI2D">
+    <!-- PWA -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#2f80ed">
+    <link rel="icon" href="data:image/svg+xml,&lt;svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'&gt;&lt;text y='.9em' font-size='90'&gt;🎓&lt;/text&gt;&lt;/svg&gt;">
     
-    <!-- Icons -->
-    <link rel="icon" type="image/png" sizes="32x32" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎓</text></svg>">
-    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎓</text></svg>">
+    <!-- CSS -->
+    <link rel="stylesheet" href="styles-ameliore.css">
     
-    <!-- Manifest -->
-    <link rel="manifest" href="./manifest.json">
-    
-    <!-- Styles -->
-    <link rel="stylesheet" href="./styles-ameliore.css">
-    
-    <!-- Firebase SDK -->
-    <script type="module" src="./firebase-ameliore.js" defer></script>
-    <script type="module" src="./app-ameliore.js" defer></script>
-    
-    <!-- Service Worker -->
-    <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js')
-                    .then(registration => console.log('SW registered:', registration))
-                    .catch(error => console.log('SW registration failed:', error));
-            });
-        }
-    </script>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet">
 </head>
-<body class="theme-dark">
-    <!-- ===== ÉCRAN DE CHARGEMENT ===== -->
+<body class="theme-dark" data-new-gr-c-s-check-loaded="14.1252.0" data-gr-ext-installed="">
+    
+    <!-- Loading Screen -->
     <div id="loadingScreen" class="loading-screen">
         <div class="loading-content">
-            <div class="loading-logo">
-                <div class="logo-icon">🎓</div>
-                <h1>Learni</h1>
-                <p>Révisions STI2D</p>
-            </div>
-            <div class="loading-spinner">
-                <div class="spinner"></div>
-            </div>
-            <p class="loading-text" id="loadingText">Chargement de votre assistant révision...</p>
+            <div class="loading-logo">🎓</div>
+            <h2>Learni STI2D</h2>
+            <p>Chargement de votre assistant révision...</p>
+            <div class="loading-spinner"></div>
         </div>
     </div>
 
-    <!-- ===== SECTION AUTHENTIFICATION ===== -->
+    <!-- Auth Section -->
     <div id="authSection" class="auth-section hidden">
         <div class="auth-container">
             <div class="auth-header">
-                <div class="logo">
-                    <span class="logo-icon">🎓</span>
-                    <h1>Learni</h1>
-                </div>
-                <p>Votre assistant de révisions pour le BAC STI2D</p>
+                <h1>🎓 Learni STI2D</h1>
+                <p class="auth-subtitle">Votre assistant intelligent pour réussir le BAC STI2D 2025</p>
             </div>
-
+            
             <div class="auth-tabs">
-                <button id="loginTab" class="auth-tab active" onclick="showAuthForm('login')">Connexion</button>
-                <button id="registerTab" class="auth-tab" onclick="showAuthForm('register')">Inscription</button>
+                <button class="auth-tab active" data-tab="login">Connexion</button>
+                <button class="auth-tab" data-tab="signup">Inscription</button>
             </div>
-
-            <!-- Formulaire de connexion -->
-            <div id="loginForm" class="auth-form">
+            
+            <!-- Login Form -->
+            <form id="loginForm" class="auth-form active">
                 <div class="form-group">
                     <label for="loginEmail">Email</label>
-                    <input type="email" id="loginEmail" placeholder="votre@email.com" required>
+                    <input type="email" id="loginEmail" required="" placeholder="votre@email.fr">
                 </div>
                 <div class="form-group">
                     <label for="loginPassword">Mot de passe</label>
-                    <input type="password" id="loginPassword" placeholder="••••••••" required>
+                    <input type="password" id="loginPassword" required="" placeholder="••••••••">
                 </div>
-                <button id="loginBtn" class="auth-btn primary" onclick="loginUser()">Se connecter</button>
-            </div>
-
-            <!-- Formulaire d'inscription -->
-            <div id="registerForm" class="auth-form hidden">
+                <button type="submit" class="auth-btn" id="loginBtn">Se connecter</button>
+            </form>
+            
+            <!-- Signup Form -->
+            <form id="signupForm" class="auth-form">
                 <div class="form-group">
-                    <label for="registerEmail">Email</label>
-                    <input type="email" id="registerEmail" placeholder="votre@email.com" required>
-                </div>
-                <div class="form-group">
-                    <label for="registerPassword">Mot de passe</label>
-                    <input type="password" id="registerPassword" placeholder="••••••••" required>
+                    <label for="signupEmail">Email</label>
+                    <input type="email" id="signupEmail" required="" placeholder="votre@email.fr">
                 </div>
                 <div class="form-group">
-                    <label for="registerConfirmPassword">Confirmer le mot de passe</label>
-                    <input type="password" id="registerConfirmPassword" placeholder="••••••••" required>
+                    <label for="signupPassword">Mot de passe</label>
+                    <input type="password" id="signupPassword" required="" placeholder="••••••••" minlength="6">
                 </div>
                 <div class="form-group">
-                    <label for="registerSpecialty">Spécialité STI2D</label>
-                    <select id="registerSpecialty" required>
+                    <label for="signupSpecialty">Spécialité STI2D</label>
+                    <select id="signupSpecialty" required="">
                         <option value="">Choisir votre spécialité</option>
-                        <option value="AC">Architecture et Construction</option>
-                        <option value="ITEC">Innovation Technologique et Éco-Conception</option>
-                        <option value="EE">Énergies et Environnement</option>
-                        <option value="SIN">Systèmes d'Information et Numérique</option>
+                        <option value="AC">Architecture et Construction (AC)</option>
+                        <option value="ITEC">Innovation Technologique et Éco-Conception (ITEC)</option>
+                        <option value="EE">Énergies et Environnement (EE)</option>
+                        <option value="SIN">Systèmes d'Information et Numérique (SIN)</option>
                     </select>
                 </div>
                 <div class="form-group">
-                    <label for="registerLV1">Langue Vivante 1</label>
-                    <select id="registerLV1" required>
+                    <label for="signupLV1">LV1</label>
+                    <select id="signupLV1" required="">
                         <option value="">Choisir LV1</option>
                         <option value="Anglais">Anglais</option>
                         <option value="Allemand">Allemand</option>
                         <option value="Espagnol">Espagnol</option>
-                        <option value="Italien">Italien</option>
                     </select>
                 </div>
                 <div class="form-group">
-                    <label for="registerLV2">Langue Vivante 2</label>
-                    <select id="registerLV2" required>
-                        <option value="">Choisir LV2</option>
-                        <option value="Anglais">Anglais</option>
+                    <label for="signupLV2">LV2 (optionnel)</label>
+                    <select id="signupLV2">
+                        <option value="">Choisir LV2 (optionnel)</option>
                         <option value="Allemand">Allemand</option>
                         <option value="Espagnol">Espagnol</option>
                         <option value="Italien">Italien</option>
-                        <option value="Chinois">Chinois</option>
+                        <option value="Arabe">Arabe</option>
                     </select>
                 </div>
-                <button id="registerBtn" class="auth-btn primary" onclick="registerUser()">S'inscrire</button>
+                <button type="submit" class="auth-btn" id="signupBtn">Créer mon compte</button>
+            </form>
+            
+            <!-- Features -->
+            <div class="auth-features">
+                <h3>Fonctionnalités</h3>
+                <div class="features-grid">
+                    <div class="feature">
+                        <div class="feature-icon">📚</div>
+                        <div class="feature-text">Quiz sur mesure</div>
+                    </div>
+                    <div class="feature">
+                        <div class="feature-icon">🤖</div>
+                        <div class="feature-text">IA Gemini</div>
+                    </div>
+                    <div class="feature">
+                        <div class="feature-icon">📊</div>
+                        <div class="feature-text">Suivi progression</div>
+                    </div>
+                    <div class="feature">
+                        <div class="feature-icon">🎯</div>
+                        <div class="feature-text">Programme 2025</div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- ===== CONTENU PRINCIPAL ===== -->
-    <div id="appContent" class="app-content hidden">
+    <!-- App Content -->
+    <div id="appContent" class="hidden">
         <!-- Header -->
-        <header class="app-header">
+        <header class="main-header">
             <div class="header-content">
-                <div class="header-left">
-                    <div class="logo">
-                        <span class="logo-icon">🎓</span>
-                        <h1>Learni</h1>
-                    </div>
+                <div class="logo-section">
+                    <div class="logo">🎓 Learni</div>
+                    <div class="logo-subtitle">STI2D 2025</div>
                 </div>
-                <div class="header-right">
-                    <button id="themeSwitcher" class="theme-switcher" onclick="switchTheme()">🌙</button>
-                    <div class="user-menu">
-                        <span id="userEmail" class="user-email">utilisateur@example.com</span>
-                        <div class="user-details">
-                            <span id="userSpecialty">Spécialité</span> • 
-                            <span id="userLV1">LV1</span> • 
-                            <span id="userLV2">LV2</span>
-                        </div>
-                    </div>
-                    <button id="logoutBtn" class="logout-btn" onclick="logoutUser()">Déconnexion</button>
+                
+                <nav class="main-nav">
+                    <button class="nav-btn active" data-section="dashboard">
+                        <span class="nav-icon">🎯</span>
+                        <span class="nav-text">Tableau de bord</span>
+                    </button>
+                    <button class="nav-btn" data-section="quiz-select">
+                        <span class="nav-icon">📚</span>
+                        <span class="nav-text">Quiz</span>
+                    </button>
+                    <button class="nav-btn" data-section="quiz-ai">
+                        <span class="nav-icon">🤖</span>
+                        <span class="nav-text">IA Gemini</span>
+                    </button>
+                    <button class="nav-btn" data-section="fiches">
+                        <span class="nav-icon">📖</span>
+                        <span class="nav-text">Fiches</span>
+                    </button>
+                    <button class="nav-btn" data-section="history">
+                        <span class="nav-icon">📊</span>
+                        <span class="nav-text">Historique</span>
+                    </button>
+                </nav>
+                
+                <div class="header-actions">
+                    <button class="theme-btn" id="themeSwitcher">🌙</button>
+                    <button class="logout-btn" id="logoutBtn">Déconnexion</button>
                 </div>
             </div>
         </header>
 
-        <!-- Navigation -->
-        <nav class="app-nav">
-            <div class="nav-content">
-                <button class="nav-btn active" data-section="dashboard" onclick="showSection('dashboard')">
-                    <span class="nav-icon">📊</span>
-                    <span class="nav-text">Tableau de bord</span>
-                </button>
-                <button class="nav-btn" data-section="quiz-select" onclick="showSection('quiz-select')">
-                    <span class="nav-icon">📝</span>
-                    <span class="nav-text">Quiz</span>
-                </button>
-                <button class="nav-btn" data-section="quiz-ai" onclick="showSection('quiz-ai')">
-                    <span class="nav-icon">🤖</span>
-                    <span class="nav-text">Quiz IA</span>
-                </button>
-                <button class="nav-btn" data-section="history" onclick="showSection('history')">
-                    <span class="nav-icon">📈</span>
-                    <span class="nav-text">Historique</span>
-                </button>
-            </div>
-        </nav>
-
-        <!-- Contenu principal -->
-        <main class="app-main">
-            <!-- ===== TABLEAU DE BORD ===== -->
-            <section id="dashboard" class="dashboard">
+        <!-- Main Content -->
+        <main class="main-content">
+            
+            <!-- Dashboard -->
+            <section id="dashboard" class="section">
                 <div class="dashboard-header">
                     <h2>🎯 Tableau de bord</h2>
+                    <div class="user-info">
+                        <div class="user-email" id="userEmail">utilisateur@example.com</div>
+                        <div class="user-config">
+                            <span class="specialty" id="userSpecialty">Spécialité</span>
+                            <span class="lv1" id="userLV1">LV1</span>
+                            <span class="lv2" id="userLV2">LV2</span>
+                        </div>
+                    </div>
                 </div>
                 
                 <div class="stats-grid">
                     <div class="stat-card">
-                        <div class="stat-value" id="stat-total-quizzes">0</div>
-                        <div class="stat-label">Quiz complétés</div>
+                        <div class="stat-icon">📊</div>
+                        <div class="stat-content">
+                            <h3 id="stat-total-quizzes">0</h3>
+                            <p>Quiz complétés</p>
+                        </div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-value" id="stat-average-score">0%</div>
-                        <div class="stat-label">Score moyen</div>
+                        <div class="stat-icon">🎯</div>
+                        <div class="stat-content">
+                            <h3 id="stat-average-score">0%</h3>
+                            <p>Score moyen</p>
+                        </div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-value" id="stat-streak">0</div>
-                        <div class="stat-label">Série actuelle</div>
+                        <div class="stat-icon">🔥</div>
+                        <div class="stat-content">
+                            <h3 id="stat-streak">0</h3>
+                            <p>Série actuelle</p>
+                        </div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-value" id="stat-correct">0</div>
-                        <div class="stat-label">Bonnes réponses</div>
+                        <div class="stat-icon">✅</div>
+                        <div class="stat-content">
+                            <h3 id="stat-correct">0</h3>
+                            <p>Bonnes réponses</p>
+                        </div>
                     </div>
                 </div>
 
-                <div class="dashboard-content">
-                    <div class="activity-card">
-                        <h3>Activité récente</h3>
-                        <div id="recent-activity-list">
+                <div class="recent-activity">
+                    <h3>Activité récente</h3>
+                    <div id="recent-activity-list">
+                        <p class="no-data">Aucun quiz complété pour le moment</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Quiz Selection -->
+            <section id="quiz-select" class="section hidden">
+                <h2>📚 Choisir un quiz</h2>
+                <div id="quiz-select-container"></div>
+            </section>
+
+            <!-- Fiches -->
+            <section id="fiches" class="section hidden">
+                <h2>📖 Fiches de révision</h2>
+                <div id="fiches-container">
+                    <p>Les fiches de révision seront bientôt disponibles...</p>
+                </div>
+            </section>
+
+            <!-- Quiz IA -->
+            <section id="quiz-ai" class="section hidden">
+                <div class="ai-header">
+                    <h2>🤖 Quiz avec Intelligence Artificielle</h2>
+                    <p class="ai-description">Générez des quiz personnalisés grâce à l'IA Gemini</p>
+                </div>
+                
+                <div class="ai-form">
+                    <div class="form-group">
+                        <label for="aiSubject">Matière</label>
+                        <select id="aiSubject" required="">
+                            <option value="">Choisir une matière</option>
+                            <option value="Français">Français</option>
+                            <option value="Philosophie">Philosophie</option>
+                            <option value="Histoire-Géographie">Histoire-Géographie</option>
+                            <option value="Mathématiques">Mathématiques</option>
+                            <option value="Physique-Chimie">Physique-Chimie</option>
+                            <option value="EMC">EMC</option>
+                            <option value="EPS">EPS</option>
+                            <option value="Anglais">Anglais</option>
+                            <option value="2I2D">Ingénierie, Innovation et Développement Durable</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="aiTheme">Thème spécifique</label>
+                        <input type="text" id="aiTheme" placeholder="Ex: Les fonctions exponentielles, La poésie romantique..." maxlength="100">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="aiDifficulty">Difficulté</label>
+                        <div class="difficulty-selector">
+                            <input type="range" id="aiDifficulty" min="1" max="5" value="3">
+                            <div class="difficulty-labels">
+                                <span>Facile</span>
+                                <span>Moyen</span>
+                                <span>Difficile</span>
+                            </div>
+                            <div class="difficulty-display" id="difficultyDisplay">Difficulté: Moyen</div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="aiQuestionCount">Nombre de questions</label>
+                        <select id="aiQuestionCount">
+                            <option value="5">5 questions</option>
+                            <option value="10" selected="">10 questions</option>
+                            <option value="15">15 questions</option>
+                            <option value="20">20 questions</option>
+                        </select>
+                    </div>
+                    
+                    <button class="generate-btn" id="generateQuizBtn">🤖 Générer le quiz</button>
+                </div>
+                
+                <!-- Loading Animation -->
+                <div id="aiLoadingContainer" class="loading-container hidden">
+                    <div class="loading-animation">
+                        <div class="loading-spinner"></div>
+                        <p>Génération en cours...</p>
+                        <small>L'IA Gemini crée votre quiz personnalisé</small>
+                    </div>
+                </div>
+                
+                <!-- Quiz Display -->
+                <div id="aiQuizDisplay" class="quiz-display hidden"></div>
+            </section>
+
+            <!-- History -->
+            <section id="history" class="section hidden">
+                <h2>📊 Historique des résultats</h2>
+                <div id="history-container">
+                    <div class="history-stats">
+                        <div class="stat-summary">
+                            <h3>Résumé global</h3>
+                            <div class="stats-grid">
+                                <div class="stat-item">
+                                    <span class="stat-value" id="history-total">0</span>
+                                    <span class="stat-label">Quiz totaux</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-value" id="history-average">0%</span>
+                                    <span class="stat-label">Moyenne</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-value" id="history-best">0%</span>
+                                    <span class="stat-label">Meilleur score</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="history-list">
+                        <h3>Historique détaillé</h3>
+                        <div id="history-items">
                             <p class="no-data">Aucun quiz complété pour le moment</p>
                         </div>
                     </div>
                 </div>
             </section>
 
-            <!-- ===== SÉLECTION QUIZ ===== -->
-            <section id="quiz-select" class="quiz-select hidden">
-                <div class="section-header">
-                    <h2>📝 Sélectionner un quiz</h2>
-                </div>
-                <div id="quiz-select-container" class="quiz-container">
-                    <!-- Contenu généré dynamiquement -->
-                </div>
-            </section>
-
-            <!-- ===== QUIZ IA ===== -->
-            <section id="quiz-ai" class="quiz-ai hidden">
-                <div class="section-header">
-                    <h2>🤖 Quiz générés par IA</h2>
-                    <p>Créez des quiz personnalisés grâce à l'intelligence artificielle Groq</p>
-                </div>
-
-                <div class="ai-quiz-form">
-                    <div class="form-group">
-                        <label for="aiSubject">Matière</label>
-                        <select id="aiSubject">
-                            <option value="">Choisir une matière</option>
-                            <optgroup label="Tronc Commun">
-                                <option value="Français">Français</option>
-                                <option value="Philosophie">Philosophie</option>
-                                <option value="Histoire-Géographie">Histoire-Géographie</option>
-                                <option value="Mathématiques">Mathématiques</option>
-                                <option value="Physique-Chimie">Physique-Chimie</option>
-                                <option value="EMC">EMC</option>
-                                <option value="EPS">EPS</option>
-                                <option value="Anglais">Anglais</option>
-                            </optgroup>
-                            <optgroup label="Spécialités STI2D">
-                                <option value="2I2D">Ingénierie, Innovation et Développement Durable</option>
-                                <option value="AC">Architecture et Construction</option>
-                                <option value="ITEC">Innovation Technologique et Éco-Conception</option>
-                                <option value="EE">Énergies et Environnement</option>
-                                <option value="SIN">Systèmes d'Information et Numérique</option>
-                            </optgroup>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="aiTheme">Thème spécifique (optionnel)</label>
-                        <input type="text" id="aiTheme" placeholder="ex: Thermodynamique, Révolution française...">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="aiDifficulty">Difficulté: <span id="difficultyDisplay">Moyen</span></label>
-                        <input type="range" id="aiDifficulty" min="1" max="5" value="3">
-                        <div class="difficulty-labels">
-                            <span>Très facile</span>
-                            <span>Expert</span>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="aiQuestionCount">Nombre de questions</label>
-                        <select id="aiQuestionCount">
-                            <option value="5">5 questions</option>
-                            <option value="10" selected>10 questions</option>
-                            <option value="15">15 questions</option>
-                            <option value="20">20 questions</option>
-                        </select>
-                    </div>
-
-                    <button id="generateQuizBtn" class="quiz-btn primary" onclick="generateAIQuiz()">
-                        Générer le quiz
-                    </button>
-                </div>
-
-                <div id="aiLoadingContainer" class="ai-loading hidden">
-                    <div class="ai-loading-content">
-                        <div class="loading-spinner">
-                            <div class="spinner"></div>
-                        </div>
-                        <p>Génération de votre quiz par l'IA Groq...</p>
-                        <p class="loading-subtitle">Cela peut prendre quelques secondes</p>
-                    </div>
-                </div>
-
-                <div id="aiQuizDisplay" class="ai-quiz-display hidden">
-                    <!-- Quiz généré sera affiché ici -->
-                </div>
-            </section>
-
-            <!-- ===== HISTORIQUE ===== -->
-            <section id="history" class="history hidden">
-                <div class="section-header">
-                    <h2>📈 Historique</h2>
-                </div>
-                <div id="history-container" class="history-container">
-                    <!-- Contenu généré dynamiquement -->
-                </div>
-            </section>
         </main>
     </div>
 
-    <!-- ===== MODAL QUIZ ===== -->
-    <div id="quizModal" class="quiz-modal hidden" onclick="if(event.target === this) closeQuizModal()">
+    <!-- Quiz Modal -->
+    <div id="quizModal" class="quiz-modal hidden">
         <div class="quiz-modal-content">
             <div class="quiz-modal-header">
                 <h3 id="quizModalTitle">Quiz</h3>
-                <button id="closeQuizModal" class="close-btn" onclick="closeQuizModal()">×</button>
+                <button class="quiz-modal-close" id="closeQuizModal">✕</button>
             </div>
-            <div id="quizModalBody" class="quiz-modal-body">
-                <!-- Contenu du quiz généré dynamiquement -->
+            <div class="quiz-modal-body" id="quizModalBody">
+                <!-- Quiz content will be inserted here -->
             </div>
         </div>
     </div>
-</body>
-</html>
+
+    <!-- Firebase SDK -->
+    <script type="module" src="firebase-ameliore.js"></script>
+    
+    <!-- Main App -->
+    <script type="module" src="app-ameliore.js"></script>
+
+
+
+</body><grammarly-desktop-integration data-grammarly-shadow-root="true"></grammarly-desktop-integration></html>
