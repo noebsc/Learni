@@ -29,7 +29,7 @@ let userAnswers = [];
 let quizStartTime = null;
 
 // 🔐 Configuration GROQ API SÉCURISÉE - Utilisation du secret GROQ_KEY
-const GROQ_API_KEY = process.env.GROQ_KEY;
+import { GROQ_API_KEY } from "./groq-secret.js";
 const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
 
 // Sujets STI2D 2025 complets
