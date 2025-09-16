@@ -28,8 +28,8 @@ let currentQuizIndex = 0;
 let userAnswers = [];
 let quizStartTime = null;
 
-// 🚀 Configuration GROQ API GRATUITE - Créez votre clé sur https://console.groq.com/keys
-const GROQ_API_KEY = "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"; // GRATUIT - Remplacez par votre clé Groq
+// 🔐 Configuration GROQ API SÉCURISÉE - Utilisation du secret GROQ_KEY
+const GROQ_API_KEY = process.env.GROQ_KEY;
 const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
 
 // Sujets STI2D 2025 complets
@@ -519,15 +519,14 @@ function initAIQuiz() {
 // 🚀 GROQ API CORRIGÉ - Version la plus récente 2025
 async function callGroqAPI(subject, theme, difficulty, questionCount) {
     try {
-        // Vérification de la clé API
-        if (!GROQ_API_KEY || GROQ_API_KEY === "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") {
-            throw new Error(`Clé API Groq non configurée. Pour obtenir votre clé GRATUITE:
+        // 🔐 Vérification de la clé API depuis le secret
+        if (!GROQ_API_KEY) {
+            throw new Error(`Clé API Groq non configurée. 
 
-1. Allez sur https://console.groq.com/keys
-2. Créez un compte gratuit
-3. Cliquez "Create API Key"
-4. Copiez la clé (commence par "gsk_")
-5. Remplacez la clé dans app-ameliore.js ligne 28
+Configuration requise:
+1. Créez un secret GROQ_KEY dans votre environnement
+2. La clé doit commencer par "gsk_"
+3. Obtenez votre clé GRATUITE sur https://console.groq.com/keys
 
 GROQ est 100% gratuit avec des limites très généreuses !`);
         }
@@ -619,9 +618,9 @@ Génère ${questionCount} questions diversifiées et progressives.`;
                     errorMessage = `Clé API Groq invalide ou expirée. 
 
 Vérifications:
-1. Clé commence bien par "gsk_"
-2. Clé copiée entièrement 
-3. Compte Groq activé sur console.groq.com`;
+1. Le secret GROQ_KEY est-il bien configuré ?
+2. La clé commence-t-elle par "gsk_" ?
+3. Le compte Groq est-il activé sur console.groq.com ?`;
                     break;
                 case 429:
                     errorMessage = 'Limite de requêtes Groq atteinte. Attendez 60 secondes et ressayez.';
@@ -822,7 +821,7 @@ async function generateAIQuiz() {
         if (loadingContainer) loadingContainer.classList.add('hidden');
         
         let errorMessage = 'Erreur lors de la génération du quiz IA';
-        if (error.message.includes('Clé API')) {
+        if (error.message.includes('Clé API') || error.message.includes('secret GROQ_KEY')) {
             errorMessage = error.message; // Message détaillé pour la configuration
         } else if (error.message.includes('API')) {
             errorMessage = 'Erreur de connexion Groq. Vérifiez votre connexion internet et votre clé API.';
