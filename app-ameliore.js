@@ -1,4 +1,4 @@
-/* ========== app-ameliore.js - Learni STI2D COMPLET AVEC GROQ IA GRATUITE ========== */
+/* ========== app-ameliore.js - Learni STI2D COMPLET AVEC GROQ IA GRATUITE - NAVIGATION CORRIGÉE ========== */
 
 // Import Firebase
 import { 
@@ -838,7 +838,7 @@ async function generateAIQuiz() {
     } finally {
         if (generateBtn) {
             generateBtn.disabled = false;
-            generateBtn.textContent = 'Générer le quiz';
+            generateBtn.textContent = '🤖 Générer le quiz';
         }
     }
 }
@@ -1309,21 +1309,15 @@ async function loginUser() {
 }
 
 async function registerUser() {
-    const email = document.getElementById('registerEmail').value;
-    const password = document.getElementById('registerPassword').value;
-    const confirmPassword = document.getElementById('registerConfirmPassword').value;
-    const specialty = document.getElementById('registerSpecialty').value;
-    const lv1 = document.getElementById('registerLV1').value;
-    const lv2 = document.getElementById('registerLV2').value;
-    const registerBtn = document.getElementById('registerBtn');
+    const email = document.getElementById('signupEmail').value;
+    const password = document.getElementById('signupPassword').value;
+    const specialty = document.getElementById('signupSpecialty').value;
+    const lv1 = document.getElementById('signupLV1').value;
+    const lv2 = document.getElementById('signupLV2').value;
+    const registerBtn = document.getElementById('signupBtn');
     
-    if (!email || !password || !confirmPassword || !specialty || !lv1 || !lv2) {
-        toast('Veuillez remplir tous les champs', 'warning');
-        return;
-    }
-    
-    if (password !== confirmPassword) {
-        toast('Les mots de passe ne correspondent pas', 'error');
+    if (!email || !password || !specialty || !lv1) {
+        toast('Veuillez remplir tous les champs obligatoires', 'warning');
         return;
     }
     
@@ -1345,7 +1339,7 @@ async function registerUser() {
             displayName: email.split('@')[0],
             speciality: specialty,
             lv1: lv1,
-            lv2: lv2,
+            lv2: lv2 || '',
             createdAt: new Date().toISOString()
         });
         
@@ -1372,7 +1366,7 @@ async function registerUser() {
         toast(errorMessage, 'error');
     } finally {
         registerBtn.disabled = false;
-        registerBtn.textContent = 'S\'inscrire';
+        registerBtn.textContent = 'Créer mon compte';
     }
 }
 
@@ -1396,18 +1390,18 @@ async function logoutUser() {
 
 function showAuthForm(formType) {
     const loginForm = document.getElementById('loginForm');
-    const registerForm = document.getElementById('registerForm');
-    const loginTab = document.getElementById('loginTab');
-    const registerTab = document.getElementById('registerTab');
+    const registerForm = document.getElementById('signupForm');
+    const loginTab = document.querySelector('.auth-tab[data-tab="login"]');
+    const registerTab = document.querySelector('.auth-tab[data-tab="signup"]');
     
     if (formType === 'login') {
-        loginForm.classList.remove('hidden');
-        registerForm.classList.add('hidden');
+        loginForm.classList.add('active');
+        registerForm.classList.remove('active');
         loginTab.classList.add('active');
         registerTab.classList.remove('active');
     } else {
-        loginForm.classList.add('hidden');
-        registerForm.classList.remove('hidden');
+        loginForm.classList.remove('active');
+        registerForm.classList.add('active');
         loginTab.classList.remove('active');
         registerTab.classList.add('active');
     }
@@ -1418,7 +1412,7 @@ function hideLoadingScreen() {
     console.log('🔧 Masquage de l\'écran de chargement...');
     
     const loadingScreen = document.getElementById('loadingScreen');
-    const loadingText = document.getElementById('loadingText');
+    const loadingText = document.querySelector('#loadingScreen p');
     
     if (loadingText) {
         loadingText.textContent = 'Initialisation terminée !';
@@ -1450,7 +1444,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         switchTheme(theme);
         
         // Charger les quiz
-        const loadingText = document.getElementById('loadingText');
+        const loadingText = document.querySelector('#loadingScreen p');
         if (loadingText) loadingText.textContent = 'Chargement des quiz...';
         
         await loadQuizzes();
@@ -1484,45 +1478,81 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 });
 
+// 🔧 CORRECTION NAVIGATION : Event Listeners améliorés pour résoudre le problème de clic
 function setupEventListeners() {
-    // Navigation
-    document.querySelectorAll('.nav-btn').forEach(btn => {
-        btn.addEventListener('click', e => {
-            const section = e.target.getAttribute('data-section');
-            if (section) showSection(section);
-        });
+    // 🔧 NAVIGATION CORRIGÉE : Event delegation pour capturer les clics partout sur les boutons
+    document.addEventListener('click', e => {
+        // Boutons de navigation principale - SOLUTION pour le problème de clic sur les spans
+        const navBtn = e.target.closest('.nav-btn[data-section]');
+        if (navBtn) {
+            e.preventDefault();
+            e.stopPropagation();
+            const section = navBtn.getAttribute('data-section');
+            if (section) {
+                console.log('🔧 Navigation vers:', section);
+                showSection(section);
+            }
+            return;
+        }
+        
+        // Onglets d'authentification - SOLUTION pour les auth-tabs
+        const authTab = e.target.closest('.auth-tab[data-tab]');
+        if (authTab) {
+            e.preventDefault();
+            e.stopPropagation();
+            const tabType = authTab.getAttribute('data-tab');
+            if (tabType) {
+                console.log('🔧 Onglet auth:', tabType);
+                showAuthForm(tabType);
+            }
+            return;
+        }
+        
+        // Bouton de thème
+        if (e.target.closest('#themeSwitcher')) {
+            e.preventDefault();
+            switchTheme();
+            return;
+        }
+        
+        // Bouton de déconnexion
+        if (e.target.closest('#logoutBtn')) {
+            e.preventDefault();
+            logoutUser();
+            return;
+        }
+        
+        // Bouton de fermeture modal quiz
+        if (e.target.closest('#closeQuizModal, .quiz-modal-close')) {
+            e.preventDefault();
+            closeQuizModal();
+            return;
+        }
+        
+        // Bouton génération quiz IA
+        if (e.target.closest('#generateQuizBtn')) {
+            e.preventDefault();
+            generateAIQuiz();
+            return;
+        }
     });
     
-    // Bouton de thème
-    const themeSwitcher = document.getElementById('themeSwitcher');
-    if (themeSwitcher) {
-        themeSwitcher.addEventListener('click', switchTheme);
-    }
-    
-    // Bouton de déconnexion
-    const logoutBtn = document.getElementById('logoutBtn');
-    if (logoutBtn) {
-        logoutBtn.addEventListener('click', logoutUser);
-    }
-    
-    // Onglets d'authentification
-    const loginTab = document.getElementById('loginTab');
-    const registerTab = document.getElementById('registerTab');
-    
-    if (loginTab) loginTab.addEventListener('click', () => showAuthForm('login'));
-    if (registerTab) registerTab.addEventListener('click', () => showAuthForm('register'));
-    
     // Formulaires d'authentification
-    const loginBtn = document.getElementById('loginBtn');
-    const registerBtn = document.getElementById('registerBtn');
+    const loginForm = document.getElementById('loginForm');
+    const signupForm = document.getElementById('signupForm');
     
-    if (loginBtn) loginBtn.addEventListener('click', loginUser);
-    if (registerBtn) registerBtn.addEventListener('click', registerUser);
+    if (loginForm) {
+        loginForm.addEventListener('submit', e => {
+            e.preventDefault();
+            loginUser();
+        });
+    }
     
-    // Fermeture de modal
-    const closeModalBtn = document.getElementById('closeQuizModal');
-    if (closeModalBtn) {
-        closeModalBtn.addEventListener('click', closeQuizModal);
+    if (signupForm) {
+        signupForm.addEventListener('submit', e => {
+            e.preventDefault();
+            registerUser();
+        });
     }
     
     // Fermeture de modal en cliquant sur le fond
@@ -1537,6 +1567,8 @@ function setupEventListeners() {
     document.addEventListener('keydown', e => {
         if (e.key === 'Escape') closeQuizModal();
     });
+    
+    console.log('✅ Event listeners configurés avec correction navigation');
 }
 
 // ≡ --- FONCTIONS GLOBALES EXPOSÉES ---
@@ -1553,4 +1585,4 @@ window.nextQuestion = nextQuestion;
 window.previousQuestion = previousQuestion;
 window.closeQuizModal = closeQuizModal;
 
-console.log('📝 app-ameliore.js chargé avec Groq IA gratuite');
+console.log('📝 app-ameliore.js chargé avec Groq IA gratuite et navigation corrigée');
