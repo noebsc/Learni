@@ -654,14 +654,20 @@ Vérifications:
 
         console.log('📄 Réponse brute Groq:', aiResponse.substring(0, 500) + '...');
 
-        // 🧹 NETTOYAGE DE RÉPONSE ROBUSTE
+        // 🧹 NETTOYAGE DE RÉPONSE ROBUSTE - REGEX CORRIGÉE ⚠️
         aiResponse = aiResponse.trim();
 
         // Supprimer markdown et balises
-        aiResponse = aiResponse.replace(/```
+        aiResponse = aiResponse.replace(/```json/gi, '');
         aiResponse = aiResponse.replace(/```/g, '');
-        aiResponse = aiResponse.replace(/^.*?(?=\{)/s, ''); // Tout avant le premier {
-        aiResponse = aiResponse.replace(/\}[^}]*$/s, '}'); // Tout après le dernier }
+        
+        // 🔧 CORRECTION REGEX: Utilisation de replace simple au lieu de regex complexe
+        const startIndex = aiResponse.indexOf('{');
+        const endIndex = aiResponse.lastIndexOf('}');
+        
+        if (startIndex !== -1 && endIndex !== -1 && endIndex > startIndex) {
+            aiResponse = aiResponse.substring(startIndex, endIndex + 1);
+        }
 
         console.log('🧹 JSON nettoyé:', aiResponse.substring(0, 200) + '...');
 
@@ -1418,9 +1424,6 @@ function hideLoadingScreen() {
         loadingText.textContent = 'Initialisation terminée !';
     }
     
-    // 🔧 CORRECTION: Utiliser directement la classe .hidden au lieu de l'animation CSS
-    // Le problème était que l'animation CSS ne fonctionnait pas avec la classe .hidden
-    
     setTimeout(() => {
         if (loadingScreen) {
             console.log('🔧 Application de la classe hidden à loadingScreen');
@@ -1434,7 +1437,7 @@ function hideLoadingScreen() {
                 }
             }, 100);
         }
-    }, 800); // Délai un peu plus long pour laisser le temps de voir le message
+    }, 800);
 }
 
 // ≡ --- INITIALISATION ---
