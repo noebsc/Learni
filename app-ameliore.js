@@ -1407,8 +1407,10 @@ function showAuthForm(formType) {
     }
 }
 
-// 🔧 FONCTION D'INITIALISATION CORRIGÉE
+// 🔧 FONCTION D'INITIALISATION CORRIGÉE - VERSION FONCTIONNELLE
 function hideLoadingScreen() {
+    console.log('🔧 Masquage de l\'écran de chargement...');
+    
     const loadingScreen = document.getElementById('loadingScreen');
     const loadingText = document.getElementById('loadingText');
     
@@ -1416,14 +1418,23 @@ function hideLoadingScreen() {
         loadingText.textContent = 'Initialisation terminée !';
     }
     
+    // 🔧 CORRECTION: Utiliser directement la classe .hidden au lieu de l'animation CSS
+    // Le problème était que l'animation CSS ne fonctionnait pas avec la classe .hidden
+    
     setTimeout(() => {
         if (loadingScreen) {
-            loadingScreen.style.opacity = '0';
+            console.log('🔧 Application de la classe hidden à loadingScreen');
+            loadingScreen.classList.add('hidden');
+            
+            // Double vérification que l'écran est bien masqué
             setTimeout(() => {
-                loadingScreen.classList.add('hidden');
-            }, 500);
+                if (loadingScreen && !loadingScreen.classList.contains('hidden')) {
+                    console.log('🔧 Force hiding loadingScreen avec style direct');
+                    loadingScreen.style.display = 'none';
+                }
+            }, 100);
         }
-    }, 500);
+    }, 800); // Délai un peu plus long pour laisser le temps de voir le message
 }
 
 // ≡ --- INITIALISATION ---
@@ -1452,11 +1463,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                 console.log('👤 Utilisateur connecté:', user.email);
                 fetchAndSyncUserData(user);
                 hideLoadingScreen();
-                setTimeout(() => showSection('dashboard'), 600);
+                setTimeout(() => showSection('dashboard'), 1000);
             } else {
                 console.log('👤 Utilisateur déconnecté');
                 hideLoadingScreen();
-                setTimeout(() => showSection('authSection'), 600);
+                setTimeout(() => showSection('authSection'), 1000);
             }
         });
         
@@ -1466,7 +1477,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         console.error('❌ Erreur initialisation:', error);
         toast('Erreur lors de l\'initialisation: ' + error.message, 'error');
         hideLoadingScreen();
-        setTimeout(() => showSection('authSection'), 600);
+        setTimeout(() => showSection('authSection'), 1000);
     }
 });
 
