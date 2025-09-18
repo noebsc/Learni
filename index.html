@@ -153,15 +153,185 @@
                         <span class="nav-icon">📊</span>
                         <span class="nav-text">Historique</span>
                     </button>
+            <!-- Concentration -->
+            <section id="concentration" class="section hidden">
+                <h2>🧘‍♂️ Espace Concentration</h2>
+                <div class="concentration-tabs">
+                    <button class="concentration-tab active" data-tab="settings">Paramètres</button>
+                    <button class="concentration-tab" data-tab="music">Musique</button>
+                    <button class="concentration-tab" data-tab="animations">Animations</button>
+                </div>
+                <div class="concentration-tab-content" id="concentration-settings">
+                    <h3>Paramètres</h3>
+                    <p>Personnalisez votre espace de concentration. (Plus d'options à venir)</p>
+                </div>
+                <div class="concentration-tab-content hidden" id="concentration-music">
+                    <h3>Musique de concentration</h3>
+                    <div id="music-list">
+                        <!-- Musiques libres à venir -->
+                    </div>
+                    <audio id="music-player" controls style="width:100%;margin-top:1em;display:none;"></audio>
+                </div>
+                <div class="concentration-tab-content hidden" id="concentration-animations">
+                    <h3>Thèmes &amp; Animations immersives</h3>
+                    <div class="theme-list" id="theme-list">
+                        <!-- Thèmes dynamiques à venir -->
+                    </div>
+                </div>
+            </section>
                 </nav>
                 
                 <div class="header-actions">
-                    <button class="theme-btn" id="themeSwitcher">🌙</button>
-                    <button class="logout-btn" id="logoutBtn">Déconnexion</button>
+                    <button class="settings-grey" id="settingsBtn" title="Ouvrir les paramètres" style="display:flex;align-items:center;gap:0.5em;">
+                        <span class="settings-icon">⚙️</span>
+                        <span style="font-weight:500;">Paramètres</span>
+                    </button>
+                    <button class="logout-btn" id="logoutBtn">🚪 Déconnexion</button>
+                </div>
+        <!-- Modal Paramètres -->
+        <div id="settingsModal" class="modal hidden">
+            <div class="modal-content settings-modal-content">
+                <span class="modal-close" id="closeSettingsModal">&times;</span>
+                <h2><span class="settings-icon">⚙️</span> Paramètres du compte</h2>
+                <div class="settings-block">
+                    <h3>Thème du site</h3>
+                    <button class="theme-btn" id="themeSwitcher">🌙 Changer de thème</button>
+                </div>
+                <div class="settings-block">
+                    <h3>Changer de mot de passe</h3>
+                    <form id="changePasswordForm" class="settings-form">
+                        <div class="form-group">
+                            <label for="currentPassword">Mot de passe actuel</label>
+                            <input type="password" id="currentPassword" required placeholder="Mot de passe actuel">
+                        </div>
+                        <div class="form-group">
+                            <label for="newPassword">Nouveau mot de passe</label>
+                            <input type="password" id="newPassword" required minlength="6" placeholder="Nouveau mot de passe">
+                        </div>
+                        <button type="submit" class="quiz-btn primary">Changer le mot de passe</button>
+                    </form>
+                </div>
+                <div class="settings-block">
+                    <h3>Options du compte</h3>
+                    <form id="userOptionsForm" class="settings-form">
+                        <div class="form-group">
+                            <label for="optionLang">Langue</label>
+                            <select id="optionLang" class="form-control">
+                                <option value="fr">Français</option>
+                                <option value="en">English</option>
+                                <option value="es">Español</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="optionSpecialty">Spécialité STI2D</label>
+                            <select id="optionSpecialty" class="form-control">
+                                <option value="">Non renseignée</option>
+                                <option value="AC">Architecture et Construction (AC)</option>
+                                <option value="ITEC">Innovation Technologique et Éco-Conception (ITEC)</option>
+                                <option value="EE">Énergies et Environnement (EE)</option>
+                                <option value="SIN">Systèmes d'Information et Numérique (SIN)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="optionLV1">LV1</label>
+                            <select id="optionLV1" class="form-control">
+                                <option value="">Non renseignée</option>
+                                <option value="Anglais">Anglais</option>
+                                <option value="Allemand">Allemand</option>
+                                <option value="Espagnol">Espagnol</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="optionLV2">LV2 (optionnel)</label>
+                            <select id="optionLV2" class="form-control">
+                                <option value="">Non renseignée</option>
+                                <option value="Allemand">Allemand</option>
+                                <option value="Espagnol">Espagnol</option>
+                                <option value="Italien">Italien</option>
+                                <option value="Arabe">Arabe</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="quiz-btn primary">Enregistrer les options</button>
+                    </form>
+                </div>
+                <div class="settings-block">
+                    <h3>Transparence des données</h3>
+                    <button id="showUserDataBtn" class="quiz-btn secondary">Voir toutes mes données</button>
+                </div>
+                <div class="settings-block danger-zone">
+                    <h3>Zone dangereuse</h3>
+                    <button id="showDeleteAccountBtn" class="quiz-btn danger">Demander la suppression de mes données</button>
                 </div>
             </div>
-        </header>
+        </div>
 
+        <!-- Modal de confirmation de suppression -->
+        <div id="deleteAccountModal" class="modal hidden">
+            <div class="modal-content delete-account-modal-content">
+                <button type="button" class="modal-close" id="closeDeleteAccountModal" aria-label="Fermer">×</button>
+                <div class="delete-account-content">
+                    <h2><span style="color: #dc3545;">⚠️</span> Suppression du compte</h2>
+                    <div class="delete-account-warning">
+                        <p>Vous êtes sur le point de supprimer votre compte et toutes vos données. Cette action est irréversible.</p>
+                        <div class="warning-details">
+                            <p><strong>Cette action va supprimer :</strong></p>
+                            <ul>
+                                <li>Votre compte utilisateur</li>
+                                <li>Tout votre historique de quiz</li>
+                                <li>Vos paramètres personnalisés</li>
+                                <li>Toutes vos données personnelles</li>
+                            </ul>
+                        </div>
+                        <div class="final-warning">
+                            <p>⚠️ Cette action ne peut pas être annulée.</p>
+                        </div>
+                    </div>
+                    <div class="delete-actions">
+                        <button id="cancelDeleteAccountBtn" class="quiz-btn secondary">Annuler</button>
+                        <button id="confirmDeleteAccountBtn" class="quiz-btn danger">Confirmer la suppression</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+            <!-- Modal données utilisateur moderne -->
+            <div id="userDataModal" class="modal hidden">
+                <div class="modal-content user-data-modal-content">
+                    <span class="modal-close" id="closeUserDataModal">&times;</span>
+                    <h2 style="display:flex;align-items:center;gap:0.5em;"><span>📦</span> Mes données personnelles</h2>
+                    <div id="userDataList" class="user-data-list">
+                        <!-- Données utilisateur formatées ici -->
+                    </div>
+                </div>
+            </div>
+            </div>
+        </header>
+            <!-- Concentration -->
+            <section id="concentration" class="section hidden">
+                <h2>🧘‍♂️ Espace Concentration</h2>
+                <div class="concentration-tabs">
+                    <button class="concentration-tab active" data-tab="settings">Paramètres</button>
+                    <button class="concentration-tab" data-tab="music">Musique</button>
+                    <button class="concentration-tab" data-tab="animations">Animations</button>
+                </div>
+                <div class="concentration-tab-content" id="concentration-settings">
+                    <h3>Paramètres</h3>
+                    <p>Personnalisez votre espace de concentration. (Plus d'options à venir)</p>
+                </div>
+                <div class="concentration-tab-content hidden" id="concentration-music">
+                    <h3>Musique de concentration</h3>
+                    <div id="music-list">
+                        <!-- Musiques libres à venir -->
+                    </div>
+                    <audio id="music-player" controls style="width:100%;margin-top:1em;display:none;"></audio>
+                </div>
+                <div class="concentration-tab-content hidden" id="concentration-animations">
+                    <h3>Thèmes &amp; Animations immersives</h3>
+                    <div class="theme-list" id="theme-list">
+                        <!-- Thèmes dynamiques à venir -->
+                    </div>
+                </div>
+            </section>
         <!-- Main Content -->
         <main class="main-content">
             
@@ -355,6 +525,16 @@
     <!-- Main App -->
     <script type="module" src="app-ameliore.js"></script>
 
-
+    <!-- Quiz Options Modal -->
+    <div id="quizOptionsModal" class="modal hidden">
+        <div class="modal-content quiz-options-modal">
+            <button id="closeQuizOptionsModal" class="modal-close">×</button>
+            <h2>Configurer le quiz</h2>
+            <p class="quiz-subject-name"></p>
+            <div class="quiz-options-buttons">
+                <!-- Les boutons seront ajoutés dynamiquement en JavaScript -->
+            </div>
+        </div>
+    </div>
 
 </body><grammarly-desktop-integration data-grammarly-shadow-root="true"></grammarly-desktop-integration></html>

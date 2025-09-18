@@ -1,3 +1,228 @@
+// --- MODAL PARAMÈTRES ---
+function openSettingsModal() {
+    // Récupère les éléments select
+    const langSel = document.getElementById('optionLang');
+    const specSel = document.getElementById('optionSpecialty');
+    const lv1Sel = document.getElementById('optionLV1');
+    const lv2Sel = document.getElementById('optionLV2');
+    const themeSel = document.getElementById('optionTheme');
+
+    // Helper pour définir la valeur d'un select avec gestion des erreurs
+    function setSelectValue(select, value, defaultValue = '') {
+        if (!select) return;
+        
+        // Si la valeur est vide, on utilise la valeur par défaut
+        const valueToSet = (value === undefined || value === null || value === '') ? defaultValue : value;
+        if (valueToSet === '') return;
+
+        // Vérifie si l'option existe déjà
+        let optionExists = Array.from(select.options).some(opt => opt.value === valueToSet);
+        
+        // Si l'option n'existe pas, on l'ajoute
+        if (!optionExists) {
+            const opt = document.createElement('option');
+            opt.value = valueToSet;
+            opt.textContent = valueToSet;
+            select.appendChild(opt);
+        }
+
+        // Définit la valeur
+        select.value = valueToSet;
+        
+        // Déclenche un événement change pour s'assurer que tout listener est notifié
+        select.dispatchEvent(new Event('change'));
+    }
+
+    // Charge les données utilisateur depuis Firebase
+    if (currentUser && currentUser.uid) {
+        getDoc(doc(db, 'users', currentUser.uid))
+            .then(snap => {
+                if (snap.exists()) {
+                    const data = snap.data();
+                    console.log('Données utilisateur chargées:', data); // Debug
+
+                    // Applique les valeurs avec des valeurs par défaut
+                    setSelectValue(langSel, data.lang, 'Français');
+                    setSelectValue(specSel, data.specialty || data.speciality, 'STI2D');
+                    setSelectValue(lv1Sel, data.lv1, 'Anglais');
+                    setSelectValue(lv2Sel, data.lv2, 'Espagnol');
+                    if (themeSel) {
+                        setSelectValue(themeSel, data.theme, theme || 'dark');
+                    }
+
+                    // Stocke les valeurs actuelles dans userData pour référence
+                    userData = { ...data };
+                } else {
+                    console.log('Aucune donnée utilisateur trouvée, utilisation des valeurs par défaut');
+                    // Applique les valeurs par défaut si aucune donnée n'existe
+                    setSelectValue(langSel, null, 'Français');
+                    setSelectValue(specSel, null, 'STI2D');
+                    setSelectValue(lv1Sel, null, 'Anglais');
+                    setSelectValue(lv2Sel, null, 'Espagnol');
+                    if (themeSel) {
+                        setSelectValue(themeSel, null, theme || 'dark');
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Erreur lors du chargement des paramètres:', error);
+            })
+            .finally(() => {
+                // Affiche le modal dans tous les cas
+                document.getElementById('settingsModal').classList.remove('hidden');
+                document.body.style.overflow = 'hidden';
+            });
+    } else {
+        // Si non connecté, utilise les valeurs par défaut
+        setSelectValue(langSel, null, 'Français');
+        setSelectValue(specSel, null, 'STI2D');
+        setSelectValue(lv1Sel, null, 'Anglais');
+        setSelectValue(lv2Sel, null, 'Espagnol');
+        if (themeSel) {
+            setSelectValue(themeSel, null, theme || 'dark');
+        }
+        
+        document.getElementById('settingsModal').classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+    }
+}
+function closeSettingsModal() {
+    document.getElementById('settingsModal').classList.add('hidden');
+    document.body.style.overflow = '';
+}
+
+// Gestion des modals de suppression de compte
+function showDeleteAccountModal() {
+    const settingsModal = document.getElementById('settingsModal');
+    const deleteAccountModal = document.getElementById('deleteAccountModal');
+    
+    // Ajoute une classe pour l'animation de sortie
+    settingsModal.classList.add('fade-out');
+    
+    // Attend que l'animation de fermeture soit terminée
+    setTimeout(() => {
+        // Ferme complètement la modal des paramètres
+        settingsModal.classList.add('hidden');
+        settingsModal.classList.remove('fade-out');
+        
+        // Attend un court instant avant d'ouvrir la nouvelle modal
+        setTimeout(() => {
+            // Ouvre la modal de suppression avec une animation d'entrée
+            deleteAccountModal.classList.remove('hidden');
+            deleteAccountModal.classList.add('fade-in');
+            document.body.style.overflow = 'hidden';
+            
+            // Retire la classe d'animation après qu'elle soit terminée
+            setTimeout(() => {
+                deleteAccountModal.classList.remove('fade-in');
+            }, 300);
+        }, 100);
+    }, 200);
+}
+
+function closeDeleteAccountModal() {
+    const deleteAccountModal = document.getElementById('deleteAccountModal');
+    
+    // Ajoute une classe pour l'animation de sortie
+    deleteAccountModal.classList.add('fade-out');
+    
+    // Attend que l'animation soit terminée avant de cacher la modal
+    setTimeout(() => {
+        deleteAccountModal.classList.add('hidden');
+        deleteAccountModal.classList.remove('fade-out');
+        document.body.style.overflow = '';
+    }, 200);
+}
+
+// Fonction de suppression du compte
+async function deleteUserAccount() {
+    if (!currentUser) return;
+
+    try {
+        // Récupère les données de l'utilisateur pour les supprimer
+        const userRef = doc(db, 'users', currentUser.uid);
+        const userDoc = await getDoc(userRef);
+        
+        if (userDoc.exists()) {
+            // Supprime les données de l'utilisateur
+            await deleteDoc(userRef);
+            
+            // Supprime l'historique des quiz
+            const quizHistoryRef = collection(db, 'users', currentUser.uid, 'quizHistory');
+            const quizHistoryDocs = await getDocs(quizHistoryRef);
+            const deletePromises = quizHistoryDocs.docs.map(doc => deleteDoc(doc.ref));
+            await Promise.all(deletePromises);
+            
+            // Supprime le compte Firebase Auth
+            await currentUser.delete();
+            
+            // Déconnecte l'utilisateur
+            await signOut(auth);
+            
+            // Nettoie les données locales
+            currentUser = null;
+            userData = {};
+            localStorage.clear();
+            
+            // Recharge la page
+            window.location.reload();
+        }
+    } catch (error) {
+        console.error('Erreur lors de la suppression du compte:', error);
+        alert('Une erreur est survenue lors de la suppression du compte. Veuillez réessayer.');
+    }
+}
+
+// Event listeners pour la suppression du compte
+document.addEventListener('DOMContentLoaded', () => {
+    // Récupération des éléments DOM
+    const showDeleteAccountBtn = document.getElementById('showDeleteAccountBtn');
+    const deleteAccountModal = document.getElementById('deleteAccountModal');
+    const confirmDeleteAccountBtn = document.getElementById('confirmDeleteAccountBtn');
+    const cancelDeleteAccountBtn = document.getElementById('cancelDeleteAccountBtn');
+    const closeDeleteAccountModal = document.getElementById('closeDeleteAccountModal');
+
+    // Fonction de fermeture de la modal
+    const closeModal = () => {
+        deleteAccountModal?.classList.add('fade-out');
+        setTimeout(() => {
+            deleteAccountModal?.classList.add('hidden');
+            deleteAccountModal?.classList.remove('fade-out');
+            document.body.style.overflow = '';
+        }, 200);
+    };
+
+    // Bouton pour afficher la modal de suppression
+    showDeleteAccountBtn?.addEventListener('click', showDeleteAccountModal);
+
+    // Bouton pour confirmer la suppression
+    confirmDeleteAccountBtn?.addEventListener('click', () => {
+        deleteUserAccount();
+    });
+
+    // Boutons pour fermer la modal
+    cancelDeleteAccountBtn?.addEventListener('click', closeModal);
+    closeDeleteAccountModal?.addEventListener('click', closeModal);
+
+    // Ferme la modal si on clique en dehors
+    deleteAccountModal?.addEventListener('click', (e) => {
+        if (e.target === deleteAccountModal) {
+            closeModal();
+        }
+    });
+
+    // Empêche la propagation du clic depuis le contenu de la modal
+    deleteAccountModal?.querySelector('.modal-content')?.addEventListener('click', (e) => {
+        e.stopPropagation();
+    });
+
+    // Gestion des touches clavier (Échap pour fermer)
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && !deleteAccountModal?.classList.contains('hidden')) {
+            closeModal();
+        }
+    });
+});
 /* ========== app-ameliore.js - Learni STI2D COMPLET AVEC GROQ IA GRATUITE - NAVIGATION CORRIGÉE ========== */
 
 // Import Firebase
@@ -6,7 +231,7 @@ import {
     signInWithEmailAndPassword,
     createUserWithEmailAndPassword,
     signOut, onAuthStateChanged,
-    doc, setDoc, getDoc, updateDoc,
+    doc, setDoc, getDoc, updateDoc, deleteDoc,
     collection, getDocs, onSnapshot, logEvent,
     addDoc, query, orderBy, limit, where 
 } from './firebase-ameliore.js';
@@ -27,6 +252,27 @@ let currentQuizData = null;
 let currentQuizIndex = 0;
 let userAnswers = [];
 let quizStartTime = null;
+
+// Mapping des noms de matières entre l'affichage et le stockage
+const SUBJECT_MAPPING = {
+    'EMC': 'EMC',
+    'EPS': 'EPS',
+    'Espagnol': 'Espagnol',
+    'Allemand': 'Allemand',
+    'Italien': 'Italien',
+    'Arabe': 'Arabe'
+};
+// Firestore unsubscribe for realtime user doc listener
+let userDocUnsubscribe = null;
+// Lock to prevent concurrent AI generations
+let isGeneratingAI = false;
+// Block code for sensitive/irrelevant themes
+const BLOCK_CODE = 'BLOCKED_SENSITIVE_CONTENT';
+
+// Simple blacklist for clearly sensitive/indiscreet topics
+const SENSITIVE_KEYWORDS = [
+    'porn', 'porno', 'sex', 'sexual', 'drugs', 'drogue', 'suicide', 'bomb', 'terror', 'terrorist', 'gun', 'weapon'
+];
 
 // 🔐 Configuration GROQ API SÉCURISÉE - Utilisation du secret GROQ_KEY
 import { GROQ_API_KEY } from "./groq-secret.js";
@@ -56,16 +302,32 @@ const STI2D_SUBJECTS = {
             description: "Sciences physiques et chimiques appliquées"
         },
         "EMC": {
-            themes: ["Valeurs républicaines", "Citoyenneté", "Droit et devoirs", "Liberté", "Égalité"],
+            themes: ["Valeurs républicaines", "Citoyenneté", "Droits et devoirs", "Démocratie", "Laïcité"],
             description: "Enseignement moral et civique"
         },
         "EPS": {
-            themes: ["Sport collectif", "Sport individuel", "Santé", "Sécurité", "Nutrition"],
+            themes: ["Performance", "Santé", "Sécurité", "Règles sportives", "Méthodologie"],
             description: "Éducation physique et sportive"
         },
         "Anglais": {
             themes: ["Vie quotidienne", "Technologie", "Société", "Environnement", "Innovation"],
             description: "Langue vivante 1 - Communication et culture"
+        },
+        "Espagnol": {
+            themes: ["Compréhension", "Grammaire", "Vocabulaire", "Culture"],
+            description: "Langue vivante 2 - Communication et culture hispanique"
+        },
+        "Allemand": {
+            themes: ["Compréhension", "Grammaire", "Vocabulaire", "Culture"],
+            description: "Langue vivante 2 - Communication et culture allemande"
+        },
+        "Italien": {
+            themes: ["Compréhension", "Grammaire", "Vocabulaire", "Culture"],
+            description: "Langue vivante 2 - Communication et culture italienne"
+        },
+        "Arabe": {
+            themes: ["Compréhension", "Grammaire", "Vocabulaire", "Culture"],
+            description: "Langue vivante 2 - Communication et culture arabe"
         }
     },
     "Spécialités": {
@@ -107,7 +369,7 @@ function showSection(sectionId) {
     document.getElementById('authSection').classList.add('hidden');
 
     // Masquer toutes les sections
-    const sections = ['dashboard', 'quiz-select', 'fiches', 'quiz-ai', 'history'];
+    const sections = ['dashboard', 'quiz-select', 'fiches', 'quiz-ai', 'history', 'settingsSection'];
     sections.forEach(id => {
         const section = document.getElementById(id);
         if (section) {
@@ -153,15 +415,81 @@ function switchTheme(force) {
     } else {
         theme = theme === 'dark' ? 'light' : 'dark';
     }
-    
-    document.body.className = `theme-${theme}`;
-    localStorage.setItem('theme', theme);
+    try {
+        const root = document.documentElement;
+        // Get current surface color for overlay
+        const computed = getComputedStyle(root).getPropertyValue('--color-surface') || '';
+        const overlayColor = computed.trim() || 'rgba(255,255,255,0.95)';
+
+        // Remove any existing overlay
+        const oldOverlay = document.getElementById('themeWaveOverlay');
+        if (oldOverlay) oldOverlay.remove();
+
+        // Create SVG overlay with animated wave mask
+        const overlay = document.createElement('div');
+        overlay.className = 'theme-wave-overlay';
+        overlay.id = 'themeWaveOverlay';
+        overlay.innerHTML = `
+<svg class="theme-wave-svg" width="100vw" height="100vh" viewBox="0 0 1920 1080" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <mask id="themeWaveMask">
+      <rect x="0" y="0" width="1920" height="1080" fill="white"/>
+      <path id="wavePath" d="M0,1080 Q480,1000 960,1080 T1920,1080 V0 H0 Z" fill="black"/>
+    </mask>
+  </defs>
+  <rect class="theme-wave-rect animate" x="0" y="0" width="1920" height="1080" fill="${overlayColor}" mask="url(#themeWaveMask)" />
+</svg>`;
+        document.body.appendChild(overlay);
+
+        // Animate the wave upward
+        const waveRect = overlay.querySelector('.theme-wave-rect');
+        if (waveRect) {
+            waveRect.style.transform = 'translateY(100vh)';
+            setTimeout(() => {
+                waveRect.style.transition = 'transform 2.8s cubic-bezier(0.22,1,0.36,1)';
+                waveRect.style.transform = 'translateY(-110vh)';
+            }, 10);
+        }
+
+        // Switch theme after a short delay so the overlay covers the screen
+        setTimeout(() => {
+            document.documentElement.setAttribute('data-color-scheme', theme);
+            document.body.classList.remove('theme-dark', 'theme-light');
+            document.body.classList.add(`theme-${theme}`);
+            localStorage.setItem('theme', theme);
+        }, 300);
+
+        // Fade out and remove overlay after animation (now 5.6s)
+        setTimeout(() => {
+            overlay.classList.add('hide');
+            setTimeout(() => {
+                overlay.remove();
+            }, 400);
+        }, 5600);
+    } catch (err) {
+        // Fallback: immediate switch
+        document.documentElement.setAttribute('data-color-scheme', theme);
+        document.body.classList.remove('theme-dark', 'theme-light');
+        document.body.classList.add(`theme-${theme}`);
+        localStorage.setItem('theme', theme);
+    }
     
     const switcher = document.getElementById('themeSwitcher');
     if (switcher) {
         switcher.textContent = theme === 'dark' ? '☀️' : '🌙';
         switcher.style.transform = 'scale(1.2)';
         setTimeout(() => switcher.style.transform = 'scale(1)', 150);
+    }
+
+    // Persist theme preference for logged-in users
+    if (currentUser && currentUser.uid) {
+        try {
+            const userRef = doc(db, 'users', currentUser.uid);
+            // updateDoc expects an object; do not await to avoid blocking UI
+            updateDoc(userRef, { theme }).catch(err => console.warn('⚠️ Impossible de sauvegarder le thème utilisateur:', err));
+        } catch (err) {
+            console.warn('⚠️ Erreur en tentant de sauvegarder le thème:', err);
+        }
     }
 }
 
@@ -204,30 +532,55 @@ function toast(msg, type = 'info', timeout = 4000) {
     setTimeout(closeToast, timeout);
 }
 
+// Helper: recursively replace undefined values with null (Firestore doesn't accept undefined)
+function sanitizeForFirestore(obj) {
+    if (obj === undefined) return null;
+    if (obj === null) return null;
+    if (Array.isArray(obj)) return obj.map(item => sanitizeForFirestore(item));
+    if (typeof obj === 'object') {
+        const out = {};
+        Object.keys(obj).forEach(k => {
+            const v = obj[k];
+            if (v === undefined) {
+                out[k] = null;
+            } else if (typeof v === 'object' && v !== null) {
+                out[k] = sanitizeForFirestore(v);
+            } else {
+                out[k] = v;
+            }
+        });
+        return out;
+    }
+    return obj;
+}
+
 // 🔧 CORRECTION 1: Chargement des quiz avec bon chemin
 async function loadQuizzes() {
     try {
-        const cached = localStorage.getItem('quizzes_cache');
-        const cacheTime = localStorage.getItem('quizzes_cache_time');
-        
-        // Utiliser le cache si moins de 1 heure
-        if (cached && cacheTime && (Date.now() - parseInt(cacheTime)) < 3600000) {
-            quizzes = JSON.parse(cached);
-            console.log('✅ Quizzes chargés depuis le cache');
-            return;
+        // Fonction de débogage pour voir la structure
+        function debugQuizStructure(data) {
+            console.log('📊 Structure des quiz chargés:');
+            Object.entries(data).forEach(([subject, content]) => {
+                const structure = Array.isArray(content) ? 
+                    `[Array: ${content.length}] -> ${content[0]?.questions?.length || 0} questions` :
+                    `[Object] -> ${content?.questions?.length || 0} questions`;
+                console.log(`${subject}: ${structure}`);
+            });
         }
 
-        // 🔧 CHEMIN CORRIGÉ: ./sti2d.json au lieu de /Learni/sti2d.json
+        // Force le rechargement en ignorant le cache
+        console.log('📄 Chargement frais des quiz depuis ./sti2d.json');        // 🔧 CHEMIN CORRIGÉ: ./sti2d.json au lieu de /Learni/sti2d.json
         console.log('📄 Chargement des quiz depuis ./sti2d.json');
         const resp = await fetch('./sti2d.json');
         if (!resp.ok) throw new Error(`HTTP ${resp.status}: ${resp.statusText}`);
         
         quizzes = await resp.json();
         console.log('✅ Quiz chargés:', Object.keys(quizzes).length, 'matières');
+        debugQuizStructure(quizzes);
         
-        // Mise en cache
-        localStorage.setItem('quizzes_cache', JSON.stringify(quizzes));
-        localStorage.setItem('quizzes_cache_time', Date.now().toString());
+        // Nettoie le cache existant
+        localStorage.removeItem('quizzes_cache');
+        localStorage.removeItem('quizzes_cache_time');
         
     } catch (error) {
         console.error('❌ Erreur chargement quizzes:', error);
@@ -262,24 +615,37 @@ async function fetchAndSyncUserData(user) {
     try {
         console.log('📊 Chargement des données utilisateur...');
         currentUser = user;
-        
-        const userDoc = await getDoc(doc(db, 'users', user.uid));
-        if (userDoc.exists()) {
-            userData = userDoc.data();
+        // Detach previous listener if any
+        if (userDocUnsubscribe) {
+            try { userDocUnsubscribe(); } catch (e) { /* ignore */ }
+            userDocUnsubscribe = null;
+        }
+
+        // Realtime listener on user doc to sync prefs like theme across devices
+        const userRef = doc(db, 'users', user.uid);
+        userDocUnsubscribe = onSnapshot(userRef, snapshot => {
+            if (!snapshot.exists()) return;
+            const data = snapshot.data();
+            userData = data || {};
             speciality = userData.speciality || '';
             lv1 = userData.lv1 || '';
             lv2 = userData.lv2 || '';
-        } else {
-            userData = {
-                email: user.email,
-                displayName: user.displayName || 'Utilisateur',
-                speciality: '',
-                lv1: '',
-                lv2: '',
-                createdAt: new Date().toISOString()
-            };
-            await setDoc(doc(db, 'users', user.uid), userData);
-        }
+
+            // Apply saved theme preference if present
+            if (userData.theme && (userData.theme === 'dark' || userData.theme === 'light')) {
+                theme = userData.theme;
+                document.documentElement.setAttribute('data-color-scheme', theme);
+                document.body.classList.remove('theme-dark', 'theme-light');
+                document.body.classList.add(`theme-${theme}`);
+                localStorage.setItem('theme', theme);
+            }
+            // Update UI elements that depend on user data
+            updateUserInfo();
+            // reload progress after user data changes
+            loadUserProgress();
+        }, err => {
+            console.warn('⚠️ Erreur écoute user doc:', err);
+        });
         
         await loadUserProgress();
         updateDashboard();
@@ -297,12 +663,13 @@ async function loadUserProgress() {
     if (!currentUser) return;
     
     try {
+        // Order by creation time so drafts (completedAt null) appear first
         const historyQuery = query(
             collection(db, 'users', currentUser.uid, 'quizHistory'),
-            orderBy('completedAt', 'desc'),
-            limit(50)
+            orderBy('createdAt', 'desc'),
+            limit(100)
         );
-        
+
         const historySnapshot = await getDocs(historyQuery);
         quizHistory = historySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         calculateUserStats();
@@ -393,14 +760,22 @@ function updateRecentActivity() {
     let html = '';
     
     recentQuizzes.forEach(quiz => {
-        const date = new Date(quiz.completedAt).toLocaleDateString('fr-FR');
+        let dateStr = '-';
+        let d = null;
+        if (quiz.completedAt) {
+            d = new Date(quiz.completedAt);
+        } else if (quiz.createdAt) {
+            d = new Date(quiz.createdAt);
+        }
+        if (d && !isNaN(d) && d.getFullYear() > 1971) {
+            dateStr = d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
+        }
         const scoreClass = quiz.score >= 80 ? 'excellent' : quiz.score >= 60 ? 'good' : 'average';
-        
         html += `
             <div class="activity-item ${scoreClass}">
                 <div class="activity-info">
                     <strong>${quiz.subject}</strong>
-                    <span class="activity-date">${date}</span>
+                    <span class="activity-date">${dateStr}</span>
                 </div>
                 <div class="activity-score">${quiz.score}%</div>
             </div>
@@ -421,20 +796,43 @@ function renderQuizSelect() {
     // Tronc Commun
     html += `<div class="category"><h3>📚 Tronc Commun</h3><div class="subjects-grid">`;
     Object.entries(STI2D_SUBJECTS["Tronc Commun"]).forEach(([subject, info]) => {
-        const available = quizzes[subject] && quizzes[subject].length > 0;
-        const questionCount = available ? quizzes[subject][0].questions?.length || 0 : 'N/A';
+        // Utilise le mapping pour trouver le bon nom dans quizzes
+        const quizSubject = SUBJECT_MAPPING[subject] || subject;
+        let questionCount = 0;
+        
+        console.log(`🔍 Recherche des questions pour ${subject} (${quizSubject}):`, quizzes[quizSubject]);
+        
+        try {
+            // Vérifie si la matière existe dans quizzes
+            if (quizzes[quizSubject]) {
+                const quizData = quizzes[quizSubject];
+                // Si c'est un tableau
+                if (Array.isArray(quizData)) {
+                    questionCount = quizData.reduce((total, quiz) => {
+                        return total + (quiz.questions ? quiz.questions.length : 0);
+                    }, 0);
+                }
+                // Si c'est un objet direct
+                else if (quizData.questions) {
+                    questionCount = quizData.questions.length;
+                }
+            }
+            console.log(`📊 ${subject}: ${questionCount} questions trouvées`);
+        } catch (error) {
+            console.error(`❌ Erreur comptage questions pour ${subject}:`, error);
+        }
+        
         const isUserSubject = subject === lv1 || subject === lv2;
         
         html += `
-            <div class="subject-card ${!available ? 'unavailable' : ''} ${isUserSubject ? 'user-specialty' : ''}" 
-                 data-subject="${subject}" ${!available ? 'title="Quiz non disponible"' : ''}>
+            <div class="subject-card ${isUserSubject ? 'user-specialty' : ''}" 
+                 data-subject="${quizSubject}">
                 ${isUserSubject ? '<span class="user-badge">Votre matière</span>' : ''}
                 <div class="subject-icon">${getSubjectIcon(subject)}</div>
                 <h4>${subject}</h4>
                 <div class="question-count">${questionCount} questions</div>
                 <div class="subject-themes">${info.themes.slice(0, 3).join(', ')}...</div>
                 <div class="subject-description">${info.description}</div>
-                ${!available ? '<div class="unavailable-badge">Bientôt disponible</div>' : ''}
             </div>
         `;
     });
@@ -443,20 +841,41 @@ function renderQuizSelect() {
     // Spécialités
     html += `<div class="category"><h3>🔧 Spécialités STI2D</h3><div class="subjects-grid">`;
     Object.entries(STI2D_SUBJECTS["Spécialités"]).forEach(([subject, info]) => {
-        const available = quizzes[subject] && quizzes[subject].length > 0;
-        const questionCount = available ? quizzes[subject][0].questions?.length || 0 : 'N/A';
+        // Utilise le mapping pour trouver le bon nom dans quizzes
+        const quizSubject = SUBJECT_MAPPING[subject] || subject;
+        let questionCount = 0;
+        
+        try {
+            // Vérifie si la matière existe dans quizzes
+            if (quizzes[quizSubject]) {
+                const quizData = quizzes[quizSubject];
+                // Si c'est un tableau
+                if (Array.isArray(quizData)) {
+                    questionCount = quizData.reduce((total, quiz) => {
+                        return total + (quiz.questions ? quiz.questions.length : 0);
+                    }, 0);
+                }
+                // Si c'est un objet direct
+                else if (quizData.questions) {
+                    questionCount = quizData.questions.length;
+                }
+            }
+            console.log(`📊 ${subject}: ${questionCount} questions trouvées`);
+        } catch (error) {
+            console.error(`❌ Erreur comptage questions pour ${subject}:`, error);
+        }
+        
         const isUserSpecialty = subject === speciality;
         
         html += `
-            <div class="subject-card ${!available ? 'unavailable' : ''} ${isUserSpecialty ? 'user-specialty' : ''}" 
-                 data-subject="${subject}" ${!available ? 'title="Quiz non disponible"' : ''}>
+            <div class="subject-card ${isUserSpecialty ? 'user-specialty' : ''}" 
+                 data-subject="${quizSubject}">
                 ${isUserSpecialty ? '<span class="user-badge">Votre spécialité</span>' : ''}
                 <div class="subject-icon">${getSubjectIcon(subject)}</div>
                 <h4>${subject}</h4>
                 <div class="question-count">${questionCount} questions</div>
                 <div class="subject-themes">${info.themes.slice(0, 3).join(', ')}...</div>
                 <div class="subject-description">${info.description}</div>
-                ${!available ? '<div class="unavailable-badge">Bientôt disponible</div>' : ''}
             </div>
         `;
     });
@@ -469,8 +888,9 @@ function renderQuizSelect() {
         const subjectCard = e.target.closest('.subject-card');
         if (subjectCard && !subjectCard.classList.contains('unavailable')) {
             const subject = subjectCard.getAttribute('data-subject');
-            if (subject && quizzes[subject] && quizzes[subject].length > 0) {
-                startQuiz(subject, quizzes[subject][0]);
+            const quizData = quizzes[subject];
+            if (quizData && quizData.length > 0) {
+                showQuizOptionsModal(subject, quizData[0].questions || []);
             }
         }
     });
@@ -486,6 +906,10 @@ function getSubjectIcon(subject) {
         'EMC': '🏛️',
         'EPS': '⚽',
         'Anglais': '🇬🇧',
+        'Espagnol': '🇪🇸',
+        'Allemand': '🇩🇪',
+        'Italien': '🇮🇹',
+        'Arabe': '🇸🇦',
         '2I2D': '⚙️',
         'AC': '🏗️',
         'ITEC': '💡',
@@ -493,6 +917,98 @@ function getSubjectIcon(subject) {
         'SIN': '💻'
     };
     return icons[subject] || '📚';
+}
+
+// Fonction pour mélanger un tableau (questions)
+function shuffleArray(array) {
+    const shuffled = [...array];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+}
+
+// Fonction pour ouvrir le modal de sélection du nombre de questions
+function showQuizOptionsModal(subject, questions) {
+    const modal = document.getElementById('quizOptionsModal');
+    const subjectDisplay = modal.querySelector('.quiz-subject-name');
+    const buttonsContainer = modal.querySelector('.quiz-options-buttons');
+    
+    // Afficher le nom de la matière
+    subjectDisplay.textContent = subject;
+    
+    // Vider le conteneur des boutons
+    buttonsContainer.innerHTML = '';
+    
+    // Calculer le nombre total de questions
+    const totalQuestions = questions.length;
+    
+    // Créer les options de nombre de questions
+    const options = [];
+    
+    // Toujours proposer 10 questions si possible
+    if (totalQuestions >= 10) {
+        options.push({ count: 10, label: '10 questions' });
+    }
+    
+    // Proposer 20 questions si possible
+    if (totalQuestions >= 20) {
+        options.push({ count: 20, label: '20 questions' });
+    }
+    
+    // Si on a plus de 20 questions, proposer la moitié du total (arrondi à 5)
+    if (totalQuestions > 20) {
+        const halfCount = Math.floor(totalQuestions / 2 / 5) * 5;
+        if (halfCount > 20 && halfCount < totalQuestions) {
+            options.push({ count: halfCount, label: `${halfCount} questions` });
+        }
+    }
+    
+    // Toujours proposer toutes les questions
+    options.push({ 
+        count: totalQuestions, 
+        label: `Toutes les questions (${totalQuestions})` 
+    });
+
+    // Ajouter les boutons
+    options.forEach(option => {
+        const button = document.createElement('button');
+        button.textContent = option.label;
+        button.onclick = () => {
+            startRandomQuiz(subject, questions, option.count);
+            closeQuizOptionsModal();
+        };
+        buttonsContainer.appendChild(button);
+    });
+
+    // Afficher le modal
+    modal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+}
+
+// Fonction pour démarrer un quiz avec des questions aléatoires
+function startRandomQuiz(subject, allQuestions, questionCount) {
+    // Mélanger les questions et en sélectionner le nombre demandé
+    const selectedQuestions = shuffleArray(allQuestions).slice(0, questionCount);
+    
+    // Créer l'objet quiz avec les questions sélectionnées
+    const quizData = {
+        titre: `Quiz de ${subject}`,
+        questions: selectedQuestions
+    };
+
+    // Démarrer le quiz
+    startQuiz(subject, quizData);
+}
+
+// Fonction pour fermer le modal de sélection
+function closeQuizOptionsModal() {
+    const modal = document.getElementById('quizOptionsModal');
+    if (modal) {
+        modal.classList.add('hidden');
+        document.body.style.overflow = '';
+    }
 }
 
 // ≡ --- GÉNÉRATION QUIZ IA AVEC GROQ GRATUIT ET RAPIDE ---
@@ -510,10 +1026,8 @@ function initAIQuiz() {
         });
     }
     
-    const generateBtn = document.getElementById('generateQuizBtn');
-    if (generateBtn) {
-        generateBtn.addEventListener('click', generateAIQuiz);
-    }
+    // The generate button is handled by event delegation in setupEventListeners
+    // to avoid double-binding we do not attach a direct click listener here.
 }
 
 // 🚀 GROQ API CORRIGÉ - Version la plus récente 2025
@@ -753,7 +1267,7 @@ Vérifications:
         };
         console.log('📊 Stats quiz:', stats);
 
-        return quizData;
+    return quizData;
 
     } catch (error) {
         console.error('❌ Erreur complète génération Groq:', error);
@@ -787,6 +1301,24 @@ async function generateAIQuiz() {
     const generateBtn = document.getElementById('generateQuizBtn');
     
     try {
+        // Sensitivity check on theme and subject
+        const combined = (subject + ' ' + (theme || '')).toLowerCase();
+        for (const bad of SENSITIVE_KEYWORDS) {
+            if (combined.includes(bad)) {
+                // Return special code to the caller
+                const err = new Error('Thème sensible détecté');
+                err.code = BLOCK_CODE;
+                err.reason = `Le thème demandé contient un terme sensible: "${bad}"`;
+                throw err;
+            }
+        }
+
+        // Prevent concurrent AI generations
+        if (isGeneratingAI) {
+            toast('Une génération IA est déjà en cours. Patientez...', 'warning');
+            return;
+        }
+        isGeneratingAI = true;
         // Afficher le loading
         if (loadingContainer) loadingContainer.classList.remove('hidden');
         if (quizDisplay) quizDisplay.classList.add('hidden');
@@ -795,9 +1327,18 @@ async function generateAIQuiz() {
             generateBtn.textContent = 'Génération par Groq IA...';
         }
         
-        // Générer le quiz avec Groq
-        const quizData = await callGroqAPI(subject, theme, difficulty, questionCount);
+    // Générer le quiz avec Groq
+    const quizData = await callGroqAPI(subject, theme, difficulty, questionCount);
         
+        // Dédupliquer questions similaires (prévention de doublons IA)
+        const seenTexts = new Set();
+        quizData.questions = quizData.questions.filter(q => {
+            const key = (q.text || '').trim();
+            if (seenTexts.has(key)) return false;
+            seenTexts.add(key);
+            return true;
+        });
+
         // Créer l'objet quiz complet
         const aiQuiz = {
             titre: `Quiz IA - ${subject}${theme ? ' - ' + theme : ''}`,
@@ -812,8 +1353,38 @@ async function generateAIQuiz() {
         // Masquer le loading et démarrer le quiz
         if (loadingContainer) loadingContainer.classList.add('hidden');
         
-        // Démarrer le quiz
-        startQuiz(subject + ' IA', aiQuiz);
+        // Immediately persist a draft entry to history (user may not finish)
+        let createdHistoryId = null;
+        if (currentUser) {
+            try {
+                const draftData = {
+                    subject: aiQuiz.titre,
+                    score: 0,
+                    correctAnswers: 0,
+                    totalQuestions: aiQuiz.questions.length,
+                    createdAt: new Date().toISOString(),
+                    completedAt: null,
+                    duration: 0,
+                    isAI: true,
+                    status: "N'a pas répondu",
+                    quizSnapshot: aiQuiz // store full quiz for replay
+                };
+
+                const docRef = await addDoc(collection(db, 'users', currentUser.uid, 'quizHistory'), sanitizeForFirestore(draftData));
+                // Add local id for immediate UX
+                createdHistoryId = docRef.id;
+                // attach id to the quiz snapshot so startQuiz receives it
+                aiQuiz._historyId = createdHistoryId;
+                quizHistory.unshift({ id: createdHistoryId, ...draftData });
+                calculateUserStats();
+                updateDashboard();
+            } catch (err) {
+                console.error('❌ Erreur sauvegarde draft IA:', err);
+            }
+        }
+
+        // Démarrer le quiz, passer l'id du draft si disponible
+        startQuiz(subject + ' IA', aiQuiz, createdHistoryId);
         toast(`Quiz IA généré ! ${quizData.questions.length} questions créées par Groq.`, 'success');
         
     } catch (error) {
@@ -821,7 +1392,35 @@ async function generateAIQuiz() {
         if (loadingContainer) loadingContainer.classList.add('hidden');
         
         let errorMessage = 'Erreur lors de la génération du quiz IA';
-        if (error.message.includes('Clé API') || error.message.includes('secret GROQ_KEY')) {
+        if (error.code === BLOCK_CODE) {
+            // Sensitivity block: show reason and do not generate
+            const reason = error.reason || 'Sujet non autorisé';
+            toast(`Sujet bloqué: ${reason}`, 'error', 10000);
+            // Also record a blocked entry locally for traceability (do not save quizSnapshot)
+            if (currentUser) {
+                try {
+                    const blockEntry = {
+                        subject: `Quiz IA - ${subject}${theme ? ' - ' + theme : ''}`,
+                        score: 0,
+                        correctAnswers: 0,
+                        totalQuestions: 0,
+                        createdAt: new Date().toISOString(),
+                        completedAt: new Date().toISOString(),
+                        duration: 0,
+                        isAI: true,
+                        status: 'Bloqué',
+                        blockReason: reason
+                    };
+                    const ref = await addDoc(collection(db, 'users', currentUser.uid, 'quizHistory'), sanitizeForFirestore(blockEntry));
+                    quizHistory.unshift({ id: ref.id, ...blockEntry });
+                    calculateUserStats();
+                    updateDashboard();
+                } catch (saveErr) {
+                    console.error('❌ Erreur sauvegarde entrée bloquée:', saveErr);
+                }
+            }
+            return;
+        } else if (error.message.includes('Clé API') || error.message.includes('secret GROQ_KEY')) {
             errorMessage = error.message; // Message détaillé pour la configuration
         } else if (error.message.includes('API')) {
             errorMessage = 'Erreur de connexion Groq. Vérifiez votre connexion internet et votre clé API.';
@@ -839,12 +1438,14 @@ async function generateAIQuiz() {
             generateBtn.disabled = false;
             generateBtn.textContent = '🤖 Générer le quiz';
         }
+        isGeneratingAI = false;
     }
 }
 
 // ≡ --- QUIZ GAMEPLAY ---
 
-function startQuiz(subjectName, quizData) {
+// startQuiz(subjectName, quizData, fromAIImmediateSaveId)
+function startQuiz(subjectName, quizData, fromAIImmediateSaveId = null) {
     if (!quizData || !quizData.questions || quizData.questions.length === 0) {
         toast('Quiz non disponible ou vide', 'error');
         return;
@@ -852,8 +1453,17 @@ function startQuiz(subjectName, quizData) {
     
     currentQuizData = quizData;
     currentQuizIndex = 0;
-    userAnswers = [];
+    // Initialize answers as null = not answered
+    userAnswers = new Array(currentQuizData.questions.length).fill(null);
     quizStartTime = Date.now();
+    // Attach history id if provided so finishQuiz can update the draft
+    // Only attach history id for AI-generated quizzes (drafts)
+    if (currentQuizData.isAI) {
+        currentQuizData._historyId = fromAIImmediateSaveId || currentQuizData._historyId || null;
+    } else {
+        // Ensure normal quizzes never inherit a history id and are not treated as drafts
+        currentQuizData._historyId = null;
+    }
     
     console.log('🎯 Démarrage quiz:', subjectName, '- Questions:', quizData.questions.length);
     
@@ -942,7 +1552,7 @@ function displayCurrentQuestion() {
     
     // Restaurer la réponse précédente si elle existe
     const previousAnswer = userAnswers[currentQuizIndex];
-    if (previousAnswer !== undefined) {
+    if (previousAnswer !== undefined && previousAnswer !== null) {
         const radio = modalBody.querySelector(`input[value="${previousAnswer}"]`);
         if (radio) radio.checked = true;
     }
@@ -993,9 +1603,9 @@ async function finishQuiz() {
     const results = [];
     
     currentQuizData.questions.forEach((question, index) => {
-        const userAnswer = userAnswers[index];
+    const userAnswer = userAnswers[index];
         const correctAnswer = question.solution;
-        const isCorrect = userAnswer === correctAnswer;
+    const isCorrect = userAnswer === correctAnswer;
         
         if (isCorrect) correctAnswers++;
         
@@ -1019,21 +1629,99 @@ async function finishQuiz() {
     // Sauvegarder l'historique si utilisateur connecté
     if (currentUser) {
         try {
-            const historyData = {
-                subject: currentQuizData.titre || 'Quiz',
+            const historyRefColl = collection(db, 'users', currentUser.uid, 'quizHistory');
+
+            const payload = {
+                subject: currentQuizData.titre || currentQuizData.subject || 'Quiz',
                 score: score,
                 correctAnswers: correctAnswers,
                 totalQuestions: totalQuestions,
                 completedAt: new Date().toISOString(),
                 duration: duration,
-                isAI: currentQuizData.isAI || false
+                isAI: currentQuizData.isAI || false,
+                status: "Terminé",
+                quizSnapshot: currentQuizData,
+                results: results
             };
-            
-            await addDoc(collection(db, 'users', currentUser.uid, 'quizHistory'), historyData);
-            
-            // Recharger les données utilisateur
-            await loadUserProgress();
+
+            // Ensure createdAt exists so queries ordering by createdAt include this doc
+            if (!payload.createdAt) payload.createdAt = new Date().toISOString();
+
+            // If we have a history id, ensure it's a valid string; otherwise attempt to resolve it
+            let historyId = currentQuizData._historyId;
+            if (historyId && typeof historyId !== 'string') historyId = null;
+
+            // Try to resolve locally if missing
+            if (!historyId) {
+                // Find a likely matching draft in local quizHistory
+                const candidate = quizHistory.find(q => {
+                    if (!q) return false;
+                    // draft entries have status "N'a pas répondu" or completedAt null
+                    const isDraft = (!q.completedAt) || (q.status && q.status === "N'a pas répondu");
+                    return isDraft && q.subject === (currentQuizData.titre || currentQuizData.subject) && (q.totalQuestions === totalQuestions);
+                });
+                if (candidate && candidate.id) {
+                    historyId = candidate.id;
+                    // also attach back to currentQuizData for future
+                    currentQuizData._historyId = historyId;
+                }
+            }
+
+            if (historyId) {
+                // Update existing draft
+                try {
+                    const refDoc = doc(db, 'users', currentUser.uid, 'quizHistory', historyId);
+                    await updateDoc(refDoc, sanitizeForFirestore(payload));
+                    console.log('🔁 Historique (draft) mis à jour');
+                    // update local quizHistory entry to reflect completion
+                    const idx = quizHistory.findIndex(q => q.id === historyId);
+                    if (idx !== -1) {
+                        quizHistory[idx] = { ...quizHistory[idx], ...payload, id: historyId };
+                    }
+                } catch (updateErr) {
+                    console.error('❌ Erreur mise à jour draft:', updateErr);
+                    // Fallback to add new entry
+                    const newDocRef = await addDoc(historyRefColl, sanitizeForFirestore(payload));
+                    // If we had a local draft, replace it with the new completed entry
+                    if (historyId) {
+                        const idx = quizHistory.findIndex(q => q.id === historyId);
+                        if (idx !== -1) {
+                            quizHistory[idx] = { id: newDocRef.id, ...payload };
+                        } else {
+                            quizHistory.unshift({ id: newDocRef.id, ...payload });
+                        }
+                    } else {
+                        quizHistory.unshift({ id: newDocRef.id, ...payload });
+                    }
+                }
+            } else {
+                console.debug('📥 Ajout nouvel historique (non-draft) payload:', { subject: payload.subject, createdAt: payload.createdAt, totalQuestions: payload.totalQuestions });
+                const newDocRef = await addDoc(historyRefColl, sanitizeForFirestore(payload));
+                console.debug('📤 Document créé id:', newDocRef.id);
+                quizHistory.unshift({ id: newDocRef.id, ...payload });
+            }
+            // Recharger les données utilisateur (async) and immediately update UI
+            try {
+                loadUserProgress();
+            } catch (e) {
+                console.warn('⚠️ loadUserProgress non critique a échoué:', e);
+            }
             updateDashboard();
+            // Re-render history now from local array to show updated status quickly
+            try {
+                renderHistory();
+            } catch (e) {
+                console.warn('⚠️ renderHistory non critique a échoué:', e);
+            }
+            // Delayed re-sync: sometimes Firestore needs a moment to be query-able
+            setTimeout(() => {
+                try {
+                    loadUserProgress();
+                    renderHistory();
+                } catch (e) {
+                    console.warn('⚠️ re-sync non critique a échoué:', e);
+                }
+            }, 1200);
             console.log('💾 Historique sauvegardé');
         } catch (error) {
             console.error('❌ Erreur sauvegarde quiz:', error);
@@ -1133,11 +1821,22 @@ function displayQuizResults(score, correct, total, results, duration) {
         
         <div class="quiz-actions">
             <button class="quiz-btn secondary" onclick="closeQuizModal()">Fermer</button>
-            <button class="quiz-btn primary" onclick="showSection('quiz-select')">Nouveau quiz</button>
+            <button class="quiz-btn primary" id="restartSameQuizBtn">Recommencer ce quiz</button>
         </div>
     `;
     
     modalBody.innerHTML = html;
+
+    // Attach restart handler
+    const restartBtn = document.getElementById('restartSameQuizBtn');
+    if (restartBtn) {
+        restartBtn.addEventListener('click', () => {
+            // Restart using the same snapshot (deep clone to avoid mutation)
+            const snapshot = JSON.parse(JSON.stringify(currentQuizData));
+            closeQuizModal();
+            startQuiz(snapshot.titre || 'Quiz', snapshot);
+        });
+    }
 }
 
 function closeQuizModal() {
@@ -1195,39 +1894,157 @@ function renderHistory() {
     
     quizHistory.forEach((quiz, index) => {
         const date = new Date(quiz.completedAt);
-        const formattedDate = date.toLocaleDateString('fr-FR', {
-            day: 'numeric',
-            month: 'short',
-            year: 'numeric'
+    // Handle drafts and blocked entries (drafts only for AI-generated quizzes)
+    const isDraft = quiz.isAI && !quiz.completedAt;
+        const createdDate = new Date(quiz.createdAt || Date.now());
+        const formattedDate = createdDate.toLocaleDateString('fr-FR', {
+            day: 'numeric', month: 'short', year: 'numeric'
         });
-        const formattedTime = date.toLocaleTimeString('fr-FR', {
-            hour: '2-digit',
-            minute: '2-digit'
-        });
-        
-        const scoreClass = quiz.score >= 80 ? 'excellent' : quiz.score >= 60 ? 'good' : 'average';
+        const formattedTime = createdDate.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+
+        const scoreClass = (quiz.score || 0) >= 80 ? 'excellent' : (quiz.score || 0) >= 60 ? 'good' : 'average';
         const aiLabel = quiz.isAI ? '<span class="ai-badge">IA</span>' : '';
-        
+        const statusLabel = quiz.status ? `<span class="history-status">${quiz.status}</span>` : (isDraft ? "N'a pas répondu" : 'Terminé');
+        const blockReason = quiz.blockReason ? `<div class="block-reason">🔒 ${quiz.blockReason}</div>` : '';
+
         html += `
-            <div class="history-item ${scoreClass}">
+            <div class="history-item ${scoreClass}" data-history-id="${quiz.id}">
                 <div class="history-header">
                     <div class="history-subject">
                         <strong>${quiz.subject}</strong>
                         ${aiLabel}
                     </div>
-                    <div class="history-score">${quiz.score}%</div>
+                    <div class="history-score">${quiz.score ? quiz.score + '%' : '-'}</div>
                 </div>
                 <div class="history-details">
                     <span>📅 ${formattedDate} ${formattedTime}</span>
-                    <span>📊 ${quiz.correctAnswers}/${quiz.totalQuestions}</span>
-                    <span>⏱️ ${quiz.duration}s</span>
+                    <span>📊 ${quiz.correctAnswers || 0}/${quiz.totalQuestions || 0}</span>
+                    <span>⏱️ ${quiz.duration || 0}s</span>
+                    ${statusLabel}
                 </div>
+                ${blockReason}
             </div>
         `;
     });
     
     html += '</div>';
     container.innerHTML = html;
+
+    // Make items clickable
+    container.querySelectorAll('.history-item[data-history-id]').forEach(item => {
+        item.addEventListener('click', async () => {
+            const id = item.getAttribute('data-history-id');
+            openHistoryQuiz(id);
+        });
+    });
+}
+
+async function openHistoryQuiz(historyId) {
+    if (!currentUser) {
+        toast('Veuillez vous connecter pour voir l\'historique', 'warning');
+        return;
+    }
+
+    try {
+        const docRef = doc(db, 'users', currentUser.uid, 'quizHistory', historyId);
+        const snap = await getDoc(docRef);
+        if (!snap.exists()) {
+            toast('Entrée historique introuvable', 'error');
+            return;
+        }
+
+        const data = snap.data();
+
+        if (data.status === 'Bloqué' || data.blockReason) {
+            // Show a blocked message
+            toast(`Quiz bloqué: ${data.blockReason || 'Sujet non autorisé'}`, 'error', 8000);
+            return;
+        }
+
+        if (data.quizSnapshot && data.quizSnapshot.questions && data.quizSnapshot.questions.length > 0) {
+            // Show a choice modal: Revoir ou Retenter (works for AI and normal quizzes)
+            const snapshot = JSON.parse(JSON.stringify(data.quizSnapshot));
+
+            const modal = document.getElementById('quizModal');
+            const modalTitle = document.getElementById('quizModalTitle');
+            const modalBody = document.getElementById('quizModalBody');
+            if (modalTitle) modalTitle.textContent = data.subject || snapshot.titre || 'Quiz';
+            if (!modalBody) {
+                toast('Impossible d\'ouvrir le modal', 'error');
+                return;
+            }
+
+            const formattedDate = new Date(data.completedAt || data.createdAt || Date.now()).toLocaleString('fr-FR');
+
+            modalBody.innerHTML = `
+                <div class="history-choices">
+                    <h4>${data.subject || snapshot.titre || 'Quiz'}</h4>
+                    <div class="meta">📅 ${formattedDate} • ${snapshot.questions.length} questions ${data.isAI ? '• IA' : ''}</div>
+                    <p>Que voulez-vous faire ?</p>
+                    <div class="choice-buttons">
+                        <button class="quiz-btn secondary" id="historyReviewBtn">Revoir (questions & réponses)</button>
+                        <button class="quiz-btn primary" id="historyRetakeBtn">Retenter ce quiz</button>
+                        <button class="quiz-btn" id="historyCloseBtn">Fermer</button>
+                    </div>
+                </div>
+            `;
+
+            if (modal) modal.classList.remove('hidden');
+
+            // Review handler
+            const reviewBtn = document.getElementById('historyReviewBtn');
+            if (reviewBtn) {
+                reviewBtn.addEventListener('click', () => {
+                    // Prepare fake results if none exist
+                    const fakeResults = data.results || snapshot.questions.map(q => ({
+                        question: q.text,
+                        userAnswer: null,
+                        correctAnswer: q.solution,
+                        isCorrect: false,
+                        explanation: q.explication,
+                        type: q.type,
+                        choices: q.choices
+                    }));
+
+                    const fakeScore = data.score || 0;
+                    const fakeCorrect = data.correctAnswers || 0;
+                    const fakeTotal = data.totalQuestions || snapshot.questions.length;
+
+                    // Set currentQuizData for consistent behavior (for restart button inside results)
+                    currentQuizData = snapshot;
+                    // Prefill userAnswers from results if present
+                    if (data.results && Array.isArray(data.results)) {
+                        userAnswers = data.results.map(r => r.userAnswer === undefined ? null : r.userAnswer);
+                    } else {
+                        userAnswers = new Array(snapshot.questions.length).fill(null);
+                    }
+
+                    displayQuizResults(fakeScore, fakeCorrect, fakeTotal, fakeResults, data.duration || 0);
+                });
+            }
+
+            // Retake handler
+            const retakeBtn = document.getElementById('historyRetakeBtn');
+            if (retakeBtn) {
+                retakeBtn.addEventListener('click', () => {
+                    // Deep clone and ensure we don't reuse the old history id for updating
+                    const retakeSnapshot = JSON.parse(JSON.stringify(snapshot));
+                    // Avoid updating the original history entry when retaking
+                    if (retakeSnapshot.isAI) retakeSnapshot._historyId = null;
+                    closeQuizModal();
+                    startQuiz(retakeSnapshot.titre || data.subject || 'Quiz', retakeSnapshot);
+                });
+            }
+
+            const closeBtn = document.getElementById('historyCloseBtn');
+            if (closeBtn) closeBtn.addEventListener('click', () => closeQuizModal());
+        } else {
+            toast('Aucun quiz associé à cette entrée', 'warning');
+        }
+    } catch (err) {
+        console.error('❌ Erreur ouverture historique:', err);
+        toast('Erreur lors de l\'ouverture de l\'historique', 'error');
+    }
 }
 
 function calculateDetailedStats() {
@@ -1371,6 +2188,12 @@ async function registerUser() {
 
 async function logoutUser() {
     try {
+        // Detach realtime listener if present
+        if (userDocUnsubscribe) {
+            try { userDocUnsubscribe(); } catch (e) { /* ignore */ }
+            userDocUnsubscribe = null;
+        }
+
         await signOut(auth);
         console.log('✅ Déconnexion réussie');
         toast('Déconnecté avec succès', 'success');
@@ -1433,9 +2256,26 @@ function hideLoadingScreen() {
     }, 800);
 }
 
+// Initialiser les écouteurs d'événements pour les modals
+function initModals() {
+    // Modal de sélection du nombre de questions
+    const closeQuizOptionsBtn = document.getElementById('closeQuizOptionsModal');
+    if (closeQuizOptionsBtn) {
+        closeQuizOptionsBtn.onclick = closeQuizOptionsModal;
+    }
+}
+
 // ≡ --- INITIALISATION ---
 
 document.addEventListener('DOMContentLoaded', async () => {
+    // Initialiser les modals
+    initModals();
+    // Animation d'entrée uniquement au premier vrai chargement (pas navigation interne)
+    if (!sessionStorage.getItem('homeAnimated')) {
+        document.body.classList.add('home-animate-in');
+        sessionStorage.setItem('homeAnimated', '1');
+        setTimeout(() => document.body.classList.remove('home-animate-in'), 1800);
+    }
     console.log('🚀 Initialisation Learni STI2D...');
     
     try {
@@ -1462,6 +2302,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                 setTimeout(() => showSection('dashboard'), 1000);
             } else {
                 console.log('👤 Utilisateur déconnecté');
+                // Detach any realtime listener when signed out
+                if (userDocUnsubscribe) {
+                    try { userDocUnsubscribe(); } catch (e) { /* ignore */ }
+                    userDocUnsubscribe = null;
+                }
                 hideLoadingScreen();
                 setTimeout(() => showSection('authSection'), 1000);
             }
@@ -1481,6 +2326,35 @@ document.addEventListener('DOMContentLoaded', async () => {
 function setupEventListeners() {
     // 🔧 NAVIGATION CORRIGÉE : Event delegation pour capturer les clics partout sur les boutons
     document.addEventListener('click', e => {
+        // Bouton paramètres (ouvre le modal)
+        if (e.target.closest('#settingsBtn')) {
+            e.preventDefault();
+            openSettingsModal();
+            return;
+        }
+        // Fermeture du modal paramètres
+        if (e.target.closest('#closeSettingsModal')) {
+            e.preventDefault();
+            closeSettingsModal();
+            return;
+        }
+        // Bouton voir mes données (transparence)
+        if (e.target.closest('#showUserDataBtn')) {
+            e.preventDefault();
+            closeSettingsModal();
+            setTimeout(() => openUserDataModal(), 180);
+            return;
+        }
+        // Fermeture du modal données utilisateur
+        if (e.target.closest('#closeUserDataModal')) {
+            e.preventDefault();
+            closeUserDataModal();
+            return;
+        }
+function closeUserDataModal() {
+    document.getElementById('userDataModal').classList.add('hidden');
+    document.body.style.overflow = '';
+}
         // Boutons de navigation principale - SOLUTION pour le problème de clic sur les spans
         const navBtn = e.target.closest('.nav-btn[data-section]');
         if (navBtn) {
@@ -1568,6 +2442,105 @@ function setupEventListeners() {
     });
     
     console.log('✅ Event listeners configurés avec correction navigation');
+    // Formulaire changement de mot de passe
+    const changePasswordForm = document.getElementById('changePasswordForm');
+    if (changePasswordForm) {
+        changePasswordForm.addEventListener('submit', async e => {
+            e.preventDefault();
+            const currentPassword = document.getElementById('currentPassword').value;
+            const newPassword = document.getElementById('newPassword').value;
+            if (!currentUser || !currentUser.email) {
+                toast('Utilisateur non connecté', 'error');
+                return;
+            }
+            try {
+                // Re-authentifier l'utilisateur
+                const cred = firebase.auth.EmailAuthProvider.credential(currentUser.email, currentPassword);
+                await firebase.auth().currentUser.reauthenticateWithCredential(cred);
+                await firebase.auth().currentUser.updatePassword(newPassword);
+                toast('Mot de passe changé avec succès', 'success');
+                changePasswordForm.reset();
+            } catch (err) {
+                toast('Erreur : ' + (err.message || err), 'error');
+            }
+        });
+    }
+
+    // Formulaire options utilisateur
+    const userOptionsForm = document.getElementById('userOptionsForm');
+    if (userOptionsForm) {
+        userOptionsForm.addEventListener('submit', async e => {
+            e.preventDefault();
+            if (!currentUser || !currentUser.uid) {
+                toast('Utilisateur non connecté', 'error');
+                return;
+            }
+            const lang = document.getElementById('optionLang').value;
+            const specialty = document.getElementById('optionSpecialty').value;
+            const lv1 = document.getElementById('optionLV1').value;
+            const lv2 = document.getElementById('optionLV2').value;
+            try {
+                await updateDoc(doc(db, 'users', currentUser.uid), {
+                    lang, speciality: specialty, lv1, lv2
+                });
+                toast('Options enregistrées', 'success');
+            } catch (err) {
+                toast('Erreur : ' + (err.message || err), 'error');
+            }
+        });
+    }
+}
+// Affiche toutes les données connues sur l'utilisateur (Firebase Auth, Firestore, quizHistory...)
+async function openUserDataModal() {
+    try {
+        const modal = document.getElementById('userDataModal');
+        const list = document.getElementById('userDataList');
+        if (!currentUser) {
+            list.innerHTML = '<div style="text-align:center;color:#888;">Non connecté.</div>';
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+            return;
+        }
+        // Firebase Auth user
+        const authData = { ...currentUser };
+        // Firestore user doc
+        let firestoreData = {};
+        try {
+            const snap = await getDoc(doc(db, 'users', currentUser.uid));
+            if (snap.exists()) firestoreData = snap.data();
+        } catch {}
+        // Quiz history (local cache)
+        let historyData = [];
+        try {
+            historyData = Array.isArray(quizHistory) ? quizHistory : [];
+        } catch {}
+        // Affichage lisible
+        let html = '';
+        const fields = [
+            { label: 'Email', value: authData.email },
+            { label: 'Nom affiché', value: authData.displayName },
+            { label: 'Spécialité', value: firestoreData.specialty || firestoreData.speciality },
+            { label: 'LV1', value: firestoreData.lv1 },
+            { label: 'LV2', value: firestoreData.lv2 },
+            { label: 'Langue', value: firestoreData.lang },
+            { label: 'Date de création', value: authData.metadata?.creationTime },
+            { label: 'Dernière connexion', value: authData.metadata?.lastSignInTime },
+        ];
+        fields.forEach(f => {
+            if (f.value) {
+                html += `<div class=\"user-data-item\"><div class=\"user-data-label\">${f.label}</div><div class=\"user-data-value\">${f.value}</div></div>`;
+            }
+        });
+        if (Array.isArray(historyData) && historyData.length) {
+            html += `<div class=\"user-data-item\"><div class=\"user-data-label\">Historique des quiz</div><div class=\"user-data-value\">${historyData.length} quiz enregistrés</div></div>`;
+        }
+        if (!html) html = '<div style=\"text-align:center;color:#888;\">Aucune donnée à afficher.</div>';
+        list.innerHTML = html;
+        modal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+    } catch (err) {
+        alert('Erreur lors de la récupération des données : ' + err);
+    }
 }
 
 // ≡ --- FONCTIONS GLOBALES EXPOSÉES ---
